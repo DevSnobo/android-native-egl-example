@@ -13,7 +13,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:textColor="#ffffff"
-    android:textSize="60dp"
+    android:textSize="60sp"
     android:text="Hello World! Try clicking the screen"
     />
 </RelativeLayout>

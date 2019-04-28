@@ -1,29 +1,27 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
     repositories {
-        mavenCentral()
+        google()
+        jcenter()
+        
     }
-
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.14+'
+        classpath 'com.android.tools.build:gradle:3.5.0-alpha13'
+        
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 }
 
-apply plugin: 'com.android.application'
-
-android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.1"
-
-    defaultConfig {
-        ndk {
-            moduleName "nativeegl"
-            ldLibs "log", "android", "EGL", "GLESv1_CM"
-        }
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.1'
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }
-

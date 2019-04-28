@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-#include <stdint.h>
+#include <cstdint>
 #include <jni.h>
 #include <android/native_window.h> // requires ndk r5 or newer
 #include <android/native_window_jni.h> // requires ndk r5 or newer
@@ -26,41 +26,38 @@
 #define LOG_TAG "EglSample"
 
 
-static ANativeWindow *window = 0;
-static Renderer *renderer = 0;
+static ANativeWindow *window = nullptr;
+static Renderer *renderer = nullptr;
 
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStart(JNIEnv* jenv, jobject obj)
-{
+JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStart(JNIEnv *jenv,
+                                                                                    jclass type) {
     LOG_INFO("nativeOnStart");
     renderer = new Renderer();
-    return;
 }
 
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnResume(JNIEnv* jenv, jobject obj)
-{
+JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnResume(JNIEnv *jenv,
+                                                                                     jclass type) {
     LOG_INFO("nativeOnResume");
     renderer->start();
-    return;
 }
 
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnPause(JNIEnv* jenv, jobject obj)
-{
+JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnPause(JNIEnv *jenv,
+                                                                                    jclass type) {
     LOG_INFO("nativeOnPause");
     renderer->stop();
-    return;
 }
 
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStop(JNIEnv* jenv, jobject obj)
-{
+JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStop(JNIEnv *jenv,
+                                                                                   jclass type) {
     LOG_INFO("nativeOnStop");
     delete renderer;
-    renderer = 0;
-    return;
+    renderer = nullptr;
 }
 
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeSetSurface(JNIEnv* jenv, jobject obj, jobject surface)
-{
-    if (surface != 0) {
+JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeSetSurface(JNIEnv *jenv,
+                                                                                       jclass type,
+                                                                                       jobject surface) {
+    if (surface != nullptr) {
         window = ANativeWindow_fromSurface(jenv, surface);
         LOG_INFO("Got window %p", window);
         renderer->setWindow(window);
@@ -69,6 +66,5 @@ JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeSetS
         ANativeWindow_release(window);
     }
 
-    return;
 }
 

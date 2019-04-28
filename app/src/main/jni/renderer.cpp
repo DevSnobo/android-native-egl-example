@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-#include <stdint.h>
+#include <cstdint>
 #include <unistd.h>
 #include <pthread.h>
 #include <android/native_window.h> // requires ndk r5 or newer

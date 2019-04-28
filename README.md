@@ -24,7 +24,7 @@ thread.
 Requirements
 ------------
 
-Android API level 9 and Android NDK r5 
+Android API level 28 and Android NDK r19c
 
 
 Acknowledgments

@@ -27,91 +27,74 @@
 #define LOG_TAG "EglSample"
 
 static GLint vertices[][3] = {
-    { -0x10000, -0x10000, -0x10000 },
-    {  0x10000, -0x10000, -0x10000 },
-    {  0x10000,  0x10000, -0x10000 },
-    { -0x10000,  0x10000, -0x10000 },
-    { -0x10000, -0x10000,  0x10000 },
-    {  0x10000, -0x10000,  0x10000 },
-    {  0x10000,  0x10000,  0x10000 },
-    { -0x10000,  0x10000,  0x10000 }
+        {-0x10000, -0x10000, -0x10000},
+        {0x10000,  -0x10000, -0x10000},
+        {0x10000,  0x10000,  -0x10000},
+        {-0x10000, 0x10000,  -0x10000},
+        {-0x10000, -0x10000, 0x10000},
+        {0x10000,  -0x10000, 0x10000},
+        {0x10000,  0x10000,  0x10000},
+        {-0x10000, 0x10000,  0x10000}
 };
 
 static GLint colors[][4] = {
-    { 0x00000, 0x00000, 0x00000, 0x10000 },
-    { 0x10000, 0x00000, 0x00000, 0x10000 },
-    { 0x10000, 0x10000, 0x00000, 0x10000 },
-    { 0x00000, 0x10000, 0x00000, 0x10000 },
-    { 0x00000, 0x00000, 0x10000, 0x10000 },
-    { 0x10000, 0x00000, 0x10000, 0x10000 },
-    { 0x10000, 0x10000, 0x10000, 0x10000 },
-    { 0x00000, 0x10000, 0x10000, 0x10000 }
+        {0x00000, 0x00000, 0x00000, 0x10000},
+        {0x10000, 0x00000, 0x00000, 0x10000},
+        {0x10000, 0x10000, 0x00000, 0x10000},
+        {0x00000, 0x10000, 0x00000, 0x10000},
+        {0x00000, 0x00000, 0x10000, 0x10000},
+        {0x10000, 0x00000, 0x10000, 0x10000},
+        {0x10000, 0x10000, 0x10000, 0x10000},
+        {0x00000, 0x10000, 0x10000, 0x10000}
 };
 
 GLubyte indices[] = {
-    0, 4, 5,    0, 5, 1,
-    1, 5, 6,    1, 6, 2,
-    2, 6, 7,    2, 7, 3,
-    3, 7, 4,    3, 4, 0,
-    4, 7, 6,    4, 6, 5,
-    3, 0, 1,    3, 1, 2
+        0, 4, 5, 0, 5, 1,
+        1, 5, 6, 1, 6, 2,
+        2, 6, 7, 2, 7, 3,
+        3, 7, 4, 3, 4, 0,
+        4, 7, 6, 4, 6, 5,
+        3, 0, 1, 3, 1, 2
 };
 
 
 Renderer::Renderer()
-    : _msg(MSG_NONE), _display(0), _surface(0), _context(0), _angle(0)
-{
+        : _msg(MSG_NONE), _display(nullptr), _surface(nullptr), _context(nullptr), _angle(0) {
     LOG_INFO("Renderer instance created");
-    pthread_mutex_init(&_mutex, 0);    
-    return;
 }
 
-Renderer::~Renderer()
-{
+Renderer::~Renderer() {
     LOG_INFO("Renderer instance destroyed");
-    pthread_mutex_destroy(&_mutex);
-    return;
 }
 
-void Renderer::start()
-{
+void Renderer::start() {
     LOG_INFO("Creating renderer thread");
-    pthread_create(&_threadId, 0, threadStartCallback, this);
-    return;
+    pthread_create(&_threadId, nullptr, threadStartCallback, this);
 }
 
-void Renderer::stop()
-{
+void Renderer::stop() {
     LOG_INFO("Stopping renderer thread");
 
     // send message to render thread to stop rendering
     pthread_mutex_lock(&_mutex);
     _msg = MSG_RENDER_LOOP_EXIT;
-    pthread_mutex_unlock(&_mutex);    
+    pthread_mutex_unlock(&_mutex);
 
-    pthread_join(_threadId, 0);
+    pthread_join(_threadId, nullptr);
     LOG_INFO("Renderer thread stopped");
-
-    return;
 }
 
-void Renderer::setWindow(ANativeWindow *window)
-{
+void Renderer::setWindow(ANativeWindow *window) {
     // notify render thread that window has changed
     pthread_mutex_lock(&_mutex);
     _msg = MSG_WINDOW_SET;
     _window = window;
-    pthread_mutex_unlock(&_mutex);
-
-    return;
 }
 
 
-
-void Renderer::renderLoop()
-{
+void Renderer::renderLoop() {
     bool renderingEnabled = true;
-    
+
     LOG_INFO("renderLoop()");
 
     while (renderingEnabled) {
@@ -134,33 +117,30 @@ void Renderer::renderLoop()
                 break;
         }
         _msg = MSG_NONE;
-        
+
         if (_display) {
             drawFrame();
             if (!eglSwapBuffers(_display, _surface)) {
                 LOG_ERROR("eglSwapBuffers() returned error %d", eglGetError());
             }
         }
-        
+
         pthread_mutex_unlock(&_mutex);
     }
-    
+
     LOG_INFO("Render loop exits");
-    
-    return;
 }
 
-bool Renderer::initialize()
-{
+bool Renderer::initialize() {
     const EGLint attribs[] = {
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_BLUE_SIZE, 8,
-        EGL_GREEN_SIZE, 8,
-        EGL_RED_SIZE, 8,
-        EGL_NONE
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+            EGL_BLUE_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_RED_SIZE, 8,
+            EGL_NONE
     };
     EGLDisplay display;
-    EGLConfig config;    
+    EGLConfig config;
     EGLint numConfigs;
     EGLint format;
     EGLSurface surface;
@@ -168,14 +148,14 @@ bool Renderer::initialize()
     EGLint width;
     EGLint height;
     GLfloat ratio;
-    
+
     LOG_INFO("Initializing context");
-    
+
     if ((display = eglGetDisplay(EGL_DEFAULT_DISPLAY)) == EGL_NO_DISPLAY) {
         LOG_ERROR("eglGetDisplay() returned error %d", eglGetError());
         return false;
     }
-    if (!eglInitialize(display, 0, 0)) {
+    if (!eglInitialize(display, nullptr, nullptr)) {
         LOG_ERROR("eglInitialize() returned error %d", eglGetError());
         return false;
     }
@@ -194,18 +174,18 @@ bool Renderer::initialize()
 
     ANativeWindow_setBuffersGeometry(_window, 0, 0, format);
 
-    if (!(surface = eglCreateWindowSurface(display, config, _window, 0))) {
+    if (!(surface = eglCreateWindowSurface(display, config, _window, nullptr))) {
         LOG_ERROR("eglCreateWindowSurface() returned error %d", eglGetError());
         destroy();
         return false;
     }
-    
-    if (!(context = eglCreateContext(display, config, 0, 0))) {
+
+    if (!(context = eglCreateContext(display, config, nullptr, nullptr))) {
         LOG_ERROR("eglCreateContext() returned error %d", eglGetError());
         destroy();
         return false;
     }
-    
+
     if (!eglMakeCurrent(display, surface, surface, context)) {
         LOG_ERROR("eglMakeCurrent() returned error %d", eglGetError());
         destroy();
@@ -223,13 +203,14 @@ bool Renderer::initialize()
     _surface = surface;
     _context = context;
 
+    // FIXME: need to reimplement rendering with modern OpenGL
     glDisable(GL_DITHER);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glClearColor(0, 0, 0, 0);
     glEnable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
-    
+
     glViewport(0, 0, width, height);
 
     ratio = (GLfloat) width / height;
@@ -247,42 +228,37 @@ void Renderer::destroy() {
     eglDestroyContext(_display, _context);
     eglDestroySurface(_display, _surface);
     eglTerminate(_display);
-    
+
     _display = EGL_NO_DISPLAY;
     _surface = EGL_NO_SURFACE;
     _context = EGL_NO_CONTEXT;
-
-    return;
 }
 
-void Renderer::drawFrame()
-{
+void Renderer::drawFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // FIXME: need to reimplement rendering with modern OpenGL
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0, 0, -3.0f);
     glRotatef(_angle, 0, 1, 0);
-    glRotatef(_angle*0.25f, 1, 0, 0);
+    glRotatef(_angle * 0.25f, 1, 0, 0);
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
-    
+
     glFrontFace(GL_CW);
     glVertexPointer(3, GL_FIXED, 0, vertices);
     glColorPointer(4, GL_FIXED, 0, colors);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, indices);
 
-    _angle += 1.2f;    
+    _angle += 1.2f;
 }
 
-void* Renderer::threadStartCallback(void *myself)
-{
-    Renderer *renderer = (Renderer*)myself;
+void *Renderer::threadStartCallback(void *myself) {
+    auto *renderer = (Renderer *) myself;
 
     renderer->renderLoop();
-    pthread_exit(0);
-    
-    return 0;
+    pthread_exit(nullptr);
 }
 

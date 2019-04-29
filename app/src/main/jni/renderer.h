@@ -43,12 +43,12 @@ private:
         MSG_RENDER_LOOP_EXIT
     };
 
-    pthread_t _threadId;
+    pthread_t _threadId{};
     pthread_mutex_t _mutex;
     enum RenderThreadMessage _msg;
     
     // android window, supported by NDK r5 and newer
-    ANativeWindow* _window;
+    ANativeWindow* _window{};
 
     EGLDisplay _display;
     EGLSurface _surface;

@@ -22,6 +22,8 @@
 #include <GLES3/gl3.h>
 
 #include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include "logger.h"
 #include "renderer.h"
 
@@ -215,6 +217,11 @@ bool Renderer::initialize() {
     glViewport(0, 0, width, height);
 
     ratio = (GLfloat) width / height;
+
+    glm::vec4 vec = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
+    vec = trans * vec;
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustumf(-ratio, ratio, -1, 1, 1, 10);

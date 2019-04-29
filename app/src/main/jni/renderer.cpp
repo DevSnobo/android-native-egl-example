@@ -21,6 +21,7 @@
 #include <EGL/egl.h> // requires ndk r5 or newer
 #include <GLES3/gl3.h>
 
+#include "glm/glm.hpp"
 #include "logger.h"
 #include "renderer.h"
 

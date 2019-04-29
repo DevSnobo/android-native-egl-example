@@ -6,6 +6,16 @@ project(AndroidNativeExample C CXX)
 # Sets the minimum version of CMake required to build the native library.
 cmake_minimum_required(VERSION 3.4.1)
 
+# build native_app_glue as a static lib
+add_library(native_app_glue STATIC
+        ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -Wall")
+add_definitions("-DGLM_FORCE_SIZE_T_LENGTH -DGLM_FORCE_RADIANS")
+
+# Import the CMakeLists.txt for the glm library
+add_subdirectory(glm)
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
@@ -25,29 +35,22 @@ add_library( # Sets the name of the library.
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-# Specifies a path to native header files.
-include_directories(src/main/cpp/include/)
+target_include_directories(nativeegl PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${ANDROID_NDK}/sources/android/native_app_glue)
 
-find_library( # Sets the name of the path variable.
-        log-lib
-
-        # Specifies the name of the NDK library that
-        # you want CMake to locate.
-        log)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 target_link_libraries(nativeegl Threads::Threads)
 
-add_library(app-glue
-        STATIC
-        ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
-
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
-target_link_libraries(nativeegl ${app-glue})
-target_link_libraries(nativeegl ${log-lib})
-target_link_libraries(nativeegl android)
-target_link_libraries(nativeegl GLESv3)
-target_link_libraries(nativeegl EGL)
+# add lib dependencies
+target_link_libraries(nativeegl
+        android
+        native_app_glue
+        EGL
+        GLESv3
+        log)

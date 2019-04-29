@@ -43,29 +43,11 @@ add_library(app-glue
         STATIC
         ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
 
+# Specifies libraries CMake should link to your target library. You
+# can link multiple libraries, such as libraries you define in this
+# build script, prebuilt third-party libraries, or system libraries.
 target_link_libraries(nativeegl ${app-glue})
 target_link_libraries(nativeegl ${log-lib})
 target_link_libraries(nativeegl android)
 target_link_libraries(nativeegl GLESv3)
 target_link_libraries(nativeegl EGL)
-
-
-#target_link_libraries(app-glue android)
-#target_link_libraries(app-glue EGL)
-#target_link_libraries(app-glue GLESv3)
-#target_link_libraries(nativeegl app-glue)
-
-# Specifies libraries CMake should link to your target library. You
-# can link multiple libraries, such as libraries you define in this
-# build script, prebuilt third-party libraries, or system libraries.
-
-#target_link_libraries( # Specifies the target library.
-#        nativeegl
-
-# You need to link static libraries against your shared native library.
-#        app-glue
-
-# Links the target library to the log library
-# included in the NDK.
-#        ${log-lib})
-

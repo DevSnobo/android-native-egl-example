@@ -19,7 +19,7 @@
 #include <pthread.h>
 #include <android/native_window.h> // requires ndk r5 or newer
 #include <EGL/egl.h> // requires ndk r5 or newer
-#include <GLES/gl.h>
+#include <GLES3/gl3.h>
 
 #include "logger.h"
 #include "renderer.h"

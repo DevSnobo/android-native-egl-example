@@ -18,8 +18,9 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <android/native_window.h> // requires ndk r5 or newer
-#include <EGL/egl.h> // requires ndk r5 or newer
+#include <EGL/egl.h>
 #include <GLES3/gl3.h>
+#include <rendering/shader.hpp>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -29,29 +30,18 @@
 
 #define LOG_TAG "EglSample"
 
-static GLint vertices[][3] = {
-        {-0x10000, -0x10000, -0x10000},
-        {0x10000,  -0x10000, -0x10000},
-        {0x10000,  0x10000,  -0x10000},
-        {-0x10000, 0x10000,  -0x10000},
-        {-0x10000, -0x10000, 0x10000},
-        {0x10000,  -0x10000, 0x10000},
-        {0x10000,  0x10000,  0x10000},
-        {-0x10000, 0x10000,  0x10000}
+static GLint vertices[][7] = {
+        {-0x10000, -0x10000, -0x10000, 0x00000, 0x00000, 0x00000, 0x10000},
+        {0x10000,  -0x10000, -0x10000, 0x10000, 0x00000, 0x00000, 0x10000},
+        {0x10000,  0x10000,  -0x10000, 0x10000, 0x10000, 0x00000, 0x10000},
+        {-0x10000, 0x10000,  -0x10000, 0x00000, 0x10000, 0x00000, 0x10000},
+        {-0x10000, -0x10000, 0x10000,  0x00000, 0x00000, 0x10000, 0x10000},
+        {0x10000,  -0x10000, 0x10000,  0x10000, 0x00000, 0x10000, 0x10000},
+        {0x10000,  0x10000,  0x10000,  0x10000, 0x10000, 0x10000, 0x10000},
+        {-0x10000, 0x10000,  0x10000,  0x00000, 0x10000, 0x10000, 0x10000}
 };
 
-static GLint colors[][4] = {
-        {0x00000, 0x00000, 0x00000, 0x10000},
-        {0x10000, 0x00000, 0x00000, 0x10000},
-        {0x10000, 0x10000, 0x00000, 0x10000},
-        {0x00000, 0x10000, 0x00000, 0x10000},
-        {0x00000, 0x00000, 0x10000, 0x10000},
-        {0x10000, 0x00000, 0x10000, 0x10000},
-        {0x10000, 0x10000, 0x10000, 0x10000},
-        {0x00000, 0x10000, 0x10000, 0x10000}
-};
-
-GLubyte indices[] = {
+GLint indices[] = {
         0, 4, 5, 0, 5, 1,
         1, 5, 6, 1, 6, 2,
         2, 6, 7, 2, 7, 3,
@@ -59,6 +49,8 @@ GLubyte indices[] = {
         4, 7, 6, 4, 6, 5,
         3, 0, 1, 3, 1, 2
 };
+
+static GLuint VAO, VBO, EBO;
 
 
 Renderer::Renderer()
@@ -208,23 +200,47 @@ bool Renderer::initialize() {
 
     // FIXME: need to reimplement rendering with modern OpenGL
     glDisable(GL_DITHER);
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+    //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glClearColor(0, 0, 0, 0);
     glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
+    //glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
 
     glViewport(0, 0, width, height);
 
+    // FIXME: Shader declaration
+
+
+
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid *) 0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat),
+                          (GLvoid *) (3 * sizeof(GLfloat)));
+
     ratio = (GLfloat) width / height;
 
-    glm::vec4 vec = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
-    vec = trans * vec;
+    /* glm::vec4 vec = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+     glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
+     vec = trans * vec;
+     glm::mat4 viewMat = glm::lookAt(glm::vec3(0,0,10), glm::vec3(0,0,9), glm::vec3(-sin(0.1f), 0, cos(-0.f)));*/
 
-    glMatrixMode(GL_PROJECTION);
+    /*glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustumf(-ratio, ratio, -1, 1, 1, 10);
+    glFrustumf(-ratio, ratio, -1, 1, 1, 10);*/
 
     return true;
 }
@@ -246,7 +262,7 @@ void Renderer::drawFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // FIXME: need to reimplement rendering with modern OpenGL
-    glMatrixMode(GL_MODELVIEW);
+    /*glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0, 0, -3.0f);
     glRotatef(_angle, 0, 1, 0);
@@ -257,8 +273,11 @@ void Renderer::drawFrame() {
 
     glFrontFace(GL_CW);
     glVertexPointer(3, GL_FIXED, 0, vertices);
-    glColorPointer(4, GL_FIXED, 0, colors);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, indices);
+    glColorPointer(4, GL_FIXED, 0, colors);*/
+
+    glBindVertexArray(VAO);
+
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, indices);
 
     _angle += 1.2f;
 }

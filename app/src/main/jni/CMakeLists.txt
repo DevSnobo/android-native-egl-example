@@ -15,6 +15,7 @@ add_definitions("-DGLM_FORCE_SIZE_T_LENGTH -DGLM_FORCE_RADIANS")
 
 # Import the CMakeLists.txt for the glm library
 add_subdirectory(glm)
+add_subdirectory(rendering)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -27,7 +28,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        glad.c jniapi.cpp renderer.cpp)
+        jniapi.cpp renderer.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -51,6 +52,7 @@ target_link_libraries(nativeegl Threads::Threads)
 target_link_libraries(nativeegl
         android
         native_app_glue
+        render
         EGL
         GLESv3
         log)

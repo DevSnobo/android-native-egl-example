@@ -81,6 +81,7 @@ void Renderer::setWindow(ANativeWindow *window) {
     pthread_mutex_lock(&_mutex);
     _msg = MSG_WINDOW_SET;
     _window = window;
+    pthread_mutex_unlock(&_mutex);
 }
 
 
@@ -91,21 +92,27 @@ void Renderer::renderLoop() {
     LOG_INFO("not drawing frame ...1");
     while (renderingEnabled) {
         LOG_INFO("not drawing frame ...2");
+
         pthread_mutex_lock(&_mutex);
+
+        // FIXME: debugging, this part is never reached
         LOG_INFO("not drawing frame ...3");
         // process incoming messages
         switch (_msg) {
 
             case MSG_WINDOW_SET:
+                LOG_INFO("CASE_WINDOW_SET");
                 initialize();
                 break;
 
             case MSG_RENDER_LOOP_EXIT:
+                LOG_INFO("CASE_EXIT");
                 renderingEnabled = false;
                 destroy();
                 break;
 
             default:
+                LOG_INFO("CASE_DEFAULT");
                 break;
         }
         _msg = MSG_NONE;
@@ -292,6 +299,7 @@ void Renderer::drawFrame() {
 
 void *Renderer::threadStartCallback(void *myself) {
     auto *renderer = (Renderer *) myself;
+    LOG_INFO("Callback function");
 
     renderer->renderLoop();
     pthread_exit(nullptr);

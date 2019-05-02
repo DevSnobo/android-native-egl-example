@@ -89,14 +89,11 @@ void Renderer::renderLoop() {
     bool renderingEnabled = true;
 
     LOG_INFO("renderLoop()");
-    LOG_INFO("not drawing frame ...1");
     while (renderingEnabled) {
-        LOG_INFO("not drawing frame ...2");
 
         pthread_mutex_lock(&_mutex);
 
-        // FIXME: debugging, this part is never reached
-        LOG_INFO("not drawing frame ...3");
+        // FIXME: thread locks are weird
         // process incoming messages
         switch (_msg) {
 
@@ -119,12 +116,11 @@ void Renderer::renderLoop() {
 
         if (_display) {
             drawFrame();
-                LOG_INFO("drawing frame ...");
+                LOG_ERROR("NOW drawing frame ...");
             if (!eglSwapBuffers(_display, _surface)) {
                 LOG_ERROR("eglSwapBuffers() returned error %d", eglGetError());
             }
         }
-        LOG_INFO("not drawing frame ...");
 
         pthread_mutex_unlock(&_mutex);
     }
@@ -274,7 +270,9 @@ void Renderer::drawFrame() {
     // FIXME: need to reimplement rendering with modern OpenGL
     _shader.BindShader();
     _shader.BeginRender(_cube->vbuf);
-    _shader.Render(_cube->ibuf, new glm::mat4(1.0f));
+    glm::mat4 id = glm::mat4(1.0f);
+    glm::mat4 res = glm::translate(id, glm::vec3(0, 0, -10));
+    _shader.Render(_cube->ibuf, &res);
 
 
     /*glMatrixMode(GL_MODELVIEW);

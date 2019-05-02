@@ -20,7 +20,6 @@
 #include <android/native_window.h> // requires ndk r5 or newer
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
-#include <rendering/shader.hpp>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -30,18 +29,18 @@
 
 #define LOG_TAG "EglSample"
 
-static GLint vertices[][7] = {
-        {-0x10000, -0x10000, -0x10000, 0x00000, 0x00000, 0x00000, 0x10000},
-        {0x10000,  -0x10000, -0x10000, 0x10000, 0x00000, 0x00000, 0x10000},
-        {0x10000,  0x10000,  -0x10000, 0x10000, 0x10000, 0x00000, 0x10000},
-        {-0x10000, 0x10000,  -0x10000, 0x00000, 0x10000, 0x00000, 0x10000},
-        {-0x10000, -0x10000, 0x10000,  0x00000, 0x00000, 0x10000, 0x10000},
-        {0x10000,  -0x10000, 0x10000,  0x10000, 0x00000, 0x10000, 0x10000},
-        {0x10000,  0x10000,  0x10000,  0x10000, 0x10000, 0x10000, 0x10000},
-        {-0x10000, 0x10000,  0x10000,  0x00000, 0x10000, 0x10000, 0x10000}
+static GLfloat vertices[] = {
+        -0x10000, -0x10000, -0x10000, 0x00000, 0x00000, 0x00000, 0x10000,
+        0x10000, -0x10000, -0x10000, 0x10000, 0x00000, 0x00000, 0x10000,
+        0x10000, 0x10000, -0x10000, 0x10000, 0x10000, 0x00000, 0x10000,
+        -0x10000, 0x10000, -0x10000, 0x00000, 0x10000, 0x00000, 0x10000,
+        -0x10000, -0x10000, 0x10000, 0x00000, 0x00000, 0x10000, 0x10000,
+        0x10000, -0x10000, 0x10000, 0x10000, 0x00000, 0x10000, 0x10000,
+        0x10000, 0x10000, 0x10000, 0x10000, 0x10000, 0x10000, 0x10000,
+        -0x10000, 0x10000, 0x10000, 0x00000, 0x10000, 0x10000, 0x10000
 };
 
-GLint indices[] = {
+GLushort indices[] = {
         0, 4, 5, 0, 5, 1,
         1, 5, 6, 1, 6, 2,
         2, 6, 7, 2, 7, 3,
@@ -50,11 +49,9 @@ GLint indices[] = {
         3, 0, 1, 3, 1, 2
 };
 
-static GLuint VAO, VBO, EBO;
-
-
 Renderer::Renderer()
-        : _msg(MSG_NONE), _display(nullptr), _surface(nullptr), _context(nullptr), _angle(0) {
+        : _msg(MSG_NONE), _display(nullptr), _surface(nullptr), _context(nullptr), _shader(nullptr),
+          _cube(nullptr), _angle(0) {
     LOG_INFO("Renderer instance created");
 }
 
@@ -91,11 +88,11 @@ void Renderer::renderLoop() {
     bool renderingEnabled = true;
 
     LOG_INFO("renderLoop()");
-
+    LOG_INFO("not drawing frame ...1");
     while (renderingEnabled) {
-
+        LOG_INFO("not drawing frame ...2");
         pthread_mutex_lock(&_mutex);
-
+        LOG_INFO("not drawing frame ...3");
         // process incoming messages
         switch (_msg) {
 
@@ -115,10 +112,12 @@ void Renderer::renderLoop() {
 
         if (_display) {
             drawFrame();
+                LOG_INFO("drawing frame ...");
             if (!eglSwapBuffers(_display, _surface)) {
                 LOG_ERROR("eglSwapBuffers() returned error %d", eglGetError());
             }
         }
+        LOG_INFO("not drawing frame ...");
 
         pthread_mutex_unlock(&_mutex);
     }
@@ -209,11 +208,15 @@ bool Renderer::initialize() {
     glViewport(0, 0, width, height);
 
     // FIXME: Shader declaration
+    _shader = new Shader("shaders/shader.vs", "shaders/shader.fs");
+    _shader.Compile();
+
+    _cube = new SimpleGeom(new VertexBuf(vertices, sizeof(vertices), 7 * sizeof(GLfloat)),
+                           new IndexBuf(indices, sizeof(indices)));
+    _cube->vbuf->SetColorsOffset(3 * sizeof(GLfloat));
 
 
-
-
-    glGenVertexArrays(1, &VAO);
+    /*glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
 
@@ -229,7 +232,7 @@ bool Renderer::initialize() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid *) 0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat),
-                          (GLvoid *) (3 * sizeof(GLfloat)));
+                          (GLvoid *) (3 * sizeof(GLfloat)));*/
 
     ratio = (GLfloat) width / height;
 
@@ -262,6 +265,11 @@ void Renderer::drawFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // FIXME: need to reimplement rendering with modern OpenGL
+    _shader.BindShader();
+    _shader.BeginRender(_cube->vbuf);
+    _shader.Render(_cube->ibuf, new glm::mat4(1.0f));
+
+
     /*glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0, 0, -3.0f);
@@ -273,12 +281,12 @@ void Renderer::drawFrame() {
 
     glFrontFace(GL_CW);
     glVertexPointer(3, GL_FIXED, 0, vertices);
-    glColorPointer(4, GL_FIXED, 0, colors);*/
-
-    glBindVertexArray(VAO);
+    glColorPointer(4, GL_FIXED, 0, colors);
 
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, indices);
+    */
 
+    _shader.EndRender();
     _angle += 1.2f;
 }
 

@@ -20,6 +20,8 @@
 #include <pthread.h>
 #include <EGL/egl.h> // requires ndk r5 or newer
 #include <GLES3/gl3.h>
+#include "rendering/shader.hpp"
+#include "rendering/simplegeom.hpp"
 
 
 class Renderer {
@@ -53,6 +55,8 @@ private:
     EGLDisplay _display;
     EGLSurface _surface;
     EGLContext _context;
+    Shader _shader;
+    SimpleGeom *_cube;
     GLfloat _angle;
     
     // RenderLoop is called in a rendering thread started in start() method

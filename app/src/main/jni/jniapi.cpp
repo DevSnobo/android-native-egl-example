@@ -29,24 +29,28 @@
 static ANativeWindow *window = nullptr;
 static Renderer *renderer = nullptr;
 
+extern "C"
 JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStart(JNIEnv *jenv,
                                                                                     jclass type) {
     LOG_INFO("nativeOnStart");
     renderer = new Renderer();
 }
 
+extern "C"
 JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnResume(JNIEnv *jenv,
                                                                                      jclass type) {
     LOG_INFO("nativeOnResume");
     renderer->start();
 }
 
+extern "C"
 JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnPause(JNIEnv *jenv,
                                                                                     jclass type) {
     LOG_INFO("nativeOnPause");
     renderer->stop();
 }
 
+extern "C"
 JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStop(JNIEnv *jenv,
                                                                                    jclass type) {
     LOG_INFO("nativeOnStop");
@@ -54,6 +58,7 @@ JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnSt
     renderer = nullptr;
 }
 
+extern "C"
 JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeSetSurface(JNIEnv *jenv,
                                                                                        jclass type,
                                                                                        jobject surface) {
@@ -67,4 +72,3 @@ JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeSetS
     }
 
 }
-

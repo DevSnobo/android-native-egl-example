@@ -133,11 +133,11 @@ void Shader::Compile() {
     LOGD("Program linking succeeded.");
 
     glUseProgram(mProgramH);
-    /*mMVPMatrixLoc = glGetUniformLocation(mProgramH, "u_MVP");
+    mMVPMatrixLoc = glGetUniformLocation(mProgramH, "u_MVP");
     if (mMVPMatrixLoc < 0) {
         LOGE("*** Couldn't get shader's u_MVP matrix location from shader.");
         ABORT_GAME;
-    }*/
+    }
     mPositionLoc = glGetAttribLocation(mProgramH, "a_Position");
     if (mPositionLoc < 0) {
         LOGE("*** Couldn't get shader's a_Position attribute location.");

@@ -45,6 +45,8 @@ protected:
     GLint mPositionLoc;
     GLint mColorLoc;
     GLint mTexCoordLoc;
+    GLint mScaleRot;
+    GLint mOffset;
     int mTintLoc;
     int mSamplerLoc;
     int mPointLightPosLoc;
@@ -102,6 +104,8 @@ public:
     void PushTextures(int vbo_offset, int stride);
 
     Shader(void *pVoid);
+
+    GLuint GetShaderId();
 
 protected:
 

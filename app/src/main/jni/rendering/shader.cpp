@@ -26,14 +26,14 @@ Shader::Shader(void *pVoid) {
 
 }
 
-/*Shader::Shader() {
+Shader::Shader() {
     mVertShaderH = mFragShaderH = mProgramH = 0;
     mVertPath = "shaders/triv_shader.vs";
     mFragPath = "shaders/triv_shader.fs";
     mMVPMatrixLoc = -1;
     mPositionLoc = -1;
     mPreparedVertexBuf = NULL;
-}*/
+}
 
 Shader::Shader(const char *vertexPath, const char *fragPath) {
     mVertShaderH = 0;
@@ -43,6 +43,9 @@ Shader::Shader(const char *vertexPath, const char *fragPath) {
     mProgramH = 0;
     mMVPMatrixLoc = -1;
     mPositionLoc = -1;
+    mColorLoc = -1;
+    mScaleRot = -1;
+    mOffset = -1;
     mPreparedVertexBuf = NULL;
 }
 
@@ -87,6 +90,8 @@ void Shader::Compile() {
 
     vsrc = GetVertShaderSource();
     fsrc = GetFragShaderSource();
+    LOGE("%s", vsrc);
+    LOGE("%s", fsrc);
 
     mVertShaderH = glCreateShader(GL_VERTEX_SHADER);
     mFragShaderH = glCreateShader(GL_FRAGMENT_SHADER);
@@ -133,11 +138,11 @@ void Shader::Compile() {
     LOGD("Program linking succeeded.");
 
     glUseProgram(mProgramH);
-    mMVPMatrixLoc = glGetUniformLocation(mProgramH, "u_MVP");
+    /*mMVPMatrixLoc = glGetUniformLocation(mProgramH, "u_MVP");
     if (mMVPMatrixLoc < 0) {
         LOGE("*** Couldn't get shader's u_MVP matrix location from shader.");
         ABORT_GAME;
-    }
+    }*/
     mPositionLoc = glGetAttribLocation(mProgramH, "a_Position");
     if (mPositionLoc < 0) {
         LOGE("*** Couldn't get shader's a_Position attribute location.");
@@ -146,6 +151,16 @@ void Shader::Compile() {
     mColorLoc = glGetAttribLocation(mProgramH, "a_Color");
     if (mColorLoc < 0) {
         LOGE("*** Couldn't get shader's a_Color attribute location.");
+        ABORT_GAME;
+    }
+    mScaleRot = glGetAttribLocation(mProgramH, "scaleRot");
+    if (mScaleRot < 0) {
+        LOGE("*** Couldn't get shader's scaleRot attribute location.");
+        ABORT_GAME;
+    }
+    mOffset = glGetAttribLocation(mProgramH, "offset");
+    if (mOffset < 0) {
+        LOGE("*** Couldn't get shader's offset attribute location.");
         ABORT_GAME;
     }
     /*mTexCoordLoc = glGetAttribLocation(mProgramH, "a_Tex");
@@ -219,7 +234,8 @@ void Shader::Render(IndexBuf *ibuf, glm::mat4 *mvpMat) {
     MY_ASSERT(mPreparedVertexBuf != NULL);
 
     // push MVP matrix to shader
-    PushMVPMatrix(mvpMat);
+    //TODO: reminder
+    //PushMVPMatrix(mvpMat);
 
     if (ibuf) {
         // draw with index buffer
@@ -238,6 +254,10 @@ void Shader::EndRender() {
         mPreparedVertexBuf->UnbindBuffer();
         mPreparedVertexBuf = NULL;
     }
+}
+
+GLuint Shader::GetShaderId() {
+    return mProgramH;
 }
 
 const char *Shader::GetVertShaderSource() {
@@ -273,7 +293,7 @@ const char *Shader::GetFragShaderSource() {
     try {
         // open files
         fShaderFile.open(mFragPath);
-        std::stringstream vShaderStream, fShaderStream;
+        std::stringstream fShaderStream;
         // read file's buffer contents into streams
         fShaderStream << fShaderFile.rdbuf();
         // close file handlers

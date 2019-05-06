@@ -17,16 +17,17 @@
 #define endlesstunnel_common_hpp
 
 extern "C" {
-    #include <EGL/egl.h>
-    #include <GLES3/gl3.h>
-    #include <jni.h>
-    #include <errno.h>
-    #include <android/sensor.h>
-    #include <android/log.h>
-    #include "../../../../../../../Android/android-ndk-r19c/sources/android/native_app_glue/android_native_app_glue.h"
-    #include <unistd.h>
-    #include <stdlib.h>
+   #include <EGL/egl.h>
+   #include <GLES3/gl3.h>
+   #include <jni.h>
+   #include <errno.h>
+   #include <android/sensor.h>
+   #include <android/log.h>
+   #include "../../../../../../../Android/Sdk/ndk/20.0.5392854/sources/android/native_app_glue/android_native_app_glue.h"
+   #include <unistd.h>
+   #include <stdlib.h>
 }
+
 #include "../glm/glm.hpp"
 #include "../glm/gtc/type_ptr.hpp"
 #include "../glm/gtc/matrix_transform.hpp"

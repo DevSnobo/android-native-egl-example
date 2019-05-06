@@ -86,7 +86,6 @@ RendererES3::RendererES3()
 }
 
 bool RendererES3::init() {
-    //mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
     mShader = new Shader(VERTEX_SHADER, FRAGMENT_SHADER);
     mShader->Compile();
     mProgram = mShader->GetShaderId();
@@ -164,7 +163,6 @@ void RendererES3::unmapTransformBuf() {
 }
 
 void RendererES3::draw(unsigned int numInstances) {
-    //glUseProgram(mProgram);
     mShader->BindShader();
     glBindVertexArray(mVBState);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, numInstances);

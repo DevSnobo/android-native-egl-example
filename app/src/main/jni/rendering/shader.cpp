@@ -76,7 +76,8 @@ static void _printProgramLog(GLuint program) {
 
 
 void Shader::Compile() {
-    const char *vsrc = nullptr, *fsrc = nullptr;
+    const char *vsrc = nullptr;
+    const char *fsrc = nullptr;
     GLint status = 0;
 
     LOGD("Compiling shader.");

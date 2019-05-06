@@ -55,8 +55,6 @@ struct Vertex {
 };
 extern const Vertex QUAD[4];
 extern bool checkGlError(const char* funcName);
-extern GLuint createShader(GLenum shaderType, const char* src);
-extern GLuint createProgram(const char* vtxSrc, const char* fragSrc);
 
 class Renderer {
 public:

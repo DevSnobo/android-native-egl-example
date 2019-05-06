@@ -16,15 +16,15 @@
 
 static const char VERTEX_SHADER[] =
         "#version 300 es\n"
-        "layout(location = " STRV(POS_ATTRIB) ") in vec2 pos;\n"
-        "layout(location=" STRV(COLOR_ATTRIB) ") in vec4 color;\n"
-        "layout(location=" STRV(SCALEROT_ATTRIB) ") in vec4 scaleRot;\n"
-        "layout(location=" STRV(OFFSET_ATTRIB) ") in vec2 offset;\n"
+        "layout(location = " STRV(POS_ATTRIB) ") in vec2 a_Position;\n"
+        "layout(location = " STRV(COLOR_ATTRIB) ") in vec4 a_Color;\n"
+        "layout(location = " STRV(SCALEROT_ATTRIB) ") in vec4 scaleRot;\n"
+        "layout(location = " STRV(OFFSET_ATTRIB) ") in vec2 offset;\n"
         "out vec4 vColor;\n"
         "void main() {\n"
         "    mat2 sr = mat2(scaleRot.xy, scaleRot.zw);\n"
-        "    gl_Position = vec4(sr*pos + offset, 0.0, 1.0);\n"
-        "    vColor = color;\n"
+        "    gl_Position = vec4(sr*a_Position + offset, 0.0, 1.0);\n"
+        "    vColor = a_Color;\n"
         "}\n";
 
 static const char FRAGMENT_SHADER[] =
@@ -63,7 +63,7 @@ private:
     GLuint mProgram;
     GLuint mVB[VB_COUNT];
     GLuint mVBState;
-    Shader mShader;
+    Shader *mShader;
 };
 
 
@@ -86,11 +86,11 @@ RendererES3::RendererES3()
 }
 
 bool RendererES3::init() {
-    mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-    /*mShader = new Shader("shaders/demoshader.vs", "shaders/demoshader.fs");
-    mShader.Compile();
-    mProgram = mShader.GetShaderId();
-    mShader.BindShader();*/
+    //mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+    mShader = new Shader(VERTEX_SHADER, FRAGMENT_SHADER);
+    mShader->Compile();
+    mProgram = mShader->GetShaderId();
+    mShader->BindShader();
 
     glGenBuffers(VB_COUNT, mVB);
     glBindBuffer(GL_ARRAY_BUFFER, mVB[VB_INSTANCE]);
@@ -121,7 +121,7 @@ bool RendererES3::init() {
     glEnableVertexAttribArray(OFFSET_ATTRIB);
     glVertexAttribDivisor(OFFSET_ATTRIB, 1);
 
-    //mShader.UnbindShader();
+    mShader->UnbindShader();
 
     ALOGV("Using OpenGL ES 3.0 renderer");
     return true;
@@ -164,8 +164,8 @@ void RendererES3::unmapTransformBuf() {
 }
 
 void RendererES3::draw(unsigned int numInstances) {
-    glUseProgram(mProgram);
-    //mShader.BindShader();
+    //glUseProgram(mProgram);
+    mShader->BindShader();
     glBindVertexArray(mVBState);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, numInstances);
 }

@@ -22,24 +22,18 @@
 #include "shader.hpp"
 #include "vertexbuf.hpp"
 
-Shader::Shader(void *pVoid) {
-
-}
-
 Shader::Shader() {
     mVertShaderH = mFragShaderH = mProgramH = 0;
-    mVertPath = "shaders/triv_shader.vs";
-    mFragPath = "shaders/triv_shader.fs";
     mMVPMatrixLoc = -1;
     mPositionLoc = -1;
     mPreparedVertexBuf = NULL;
 }
 
-Shader::Shader(const char *vertexPath, const char *fragPath) {
+Shader::Shader(const char *vertexSource, const char *fragSource) {
     mVertShaderH = 0;
     mFragShaderH = 0;
-    mVertPath = vertexPath;
-    mFragPath = fragPath;
+    mVertSource = vertexSource;
+    mFragSource = fragSource;
     mProgramH = 0;
     mMVPMatrixLoc = -1;
     mPositionLoc = -1;
@@ -90,8 +84,6 @@ void Shader::Compile() {
 
     vsrc = GetVertShaderSource();
     fsrc = GetFragShaderSource();
-    LOGE("%s", vsrc);
-    LOGE("%s", fsrc);
 
     mVertShaderH = glCreateShader(GL_VERTEX_SHADER);
     mFragShaderH = glCreateShader(GL_FRAGMENT_SHADER);
@@ -261,57 +253,21 @@ GLuint Shader::GetShaderId() {
 }
 
 const char *Shader::GetVertShaderSource() {
-    std::string vertexCode;
-    std::ifstream vShaderFile;
-    // ensure ifstream objects can throw exceptions:
-    vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-    try {
-        // open files
-        vShaderFile.open(mVertPath);
-        std::stringstream vShaderStream;
-        // read file's buffer contents into streams
-        vShaderStream << vShaderFile.rdbuf();
-        // close file handlers
-        vShaderFile.close();
-        // convert stream into string
-        vertexCode = vShaderStream.str();
-    }
-    catch (std::ifstream::failure &e) {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
-    }
-    return vertexCode.c_str();
+    return mVertSource;
 
 }
 
 const char *Shader::GetFragShaderSource() {
-    std::string fragmentCode;
-    std::ifstream fShaderFile;
-    // ensure ifstream objects can throw exceptions:
-    fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-    try {
-        // open files
-        fShaderFile.open(mFragPath);
-        std::stringstream fShaderStream;
-        // read file's buffer contents into streams
-        fShaderStream << fShaderFile.rdbuf();
-        // close file handlers
-        fShaderFile.close();
-        // convert stream into string
-        fragmentCode = fShaderStream.str();
-    }
-    catch (std::ifstream::failure &e) {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
-    }
-    return fragmentCode.c_str();
+    return mFragSource;
 }
 
 const char *Shader::GetShaderName() {
     return "Shader";
 }
 
-TrivialShader::TrivialShader() : Shader("shaders/triv_shader.vs", "shaders/triv_shader.fs") {
+TrivialShader::TrivialShader() : Shader() {
+    mVertSource = GetVertShaderSource();
+    mFragSource = GetFragShaderSource();
     mColorLoc = -1;
     mTintLoc = -1;
     mTint[0] = mTint[1] = mTint[2] = 1.0f; // white

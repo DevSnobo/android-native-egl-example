@@ -37,8 +37,8 @@ class Shader {
 protected:
     // OpenGL handles
     GLuint mVertShaderH, mFragShaderH;
-    const char *mVertPath;
-    const char *mFragPath;
+    const char *mVertSource;
+    const char *mFragSource;
     GLuint mProgramH;
 
     int mMVPMatrixLoc;
@@ -57,7 +57,7 @@ protected:
 public:
     Shader();
 
-    Shader(const char *vertexPath, const char *fragPath);
+    Shader(const char *vertexSource, const char *fragSource);
 
     virtual ~Shader();
 
@@ -102,8 +102,6 @@ public:
 
     // Push the vertex textures to the shader
     void PushTextures(int vbo_offset, int stride);
-
-    Shader(void *pVoid);
 
     GLuint GetShaderId();
 

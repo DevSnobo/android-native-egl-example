@@ -23,52 +23,57 @@
 #include "logger.h"
 #include "renderer.h"
 
-#define LOG_TAG "EglSample"
+//static ANativeWindow *window = nullptr;
+static Renderer *g_renderer = nullptr;
 
-
-static ANativeWindow *window = nullptr;
-static Renderer *renderer = nullptr;
-
-extern "C"
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStart(JNIEnv *jenv,
-                                                                                    jclass type) {
-    LOG_INFO("nativeOnStart");
-    renderer = new Renderer();
+static void printGlString(const char* name, GLenum s) {
+    const char* v = (const char*)glGetString(s);
+    LOG_INFO("GL %s: %s\n", name, v);
 }
 
-extern "C"
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnResume(JNIEnv *jenv,
-                                                                                     jclass type) {
-    LOG_INFO("nativeOnResume");
-    renderer->start();
+#if !defined(DYNAMIC_ES3)
+static GLboolean gl3stubInit() {
+    return GL_TRUE;
 }
+#endif
 
 extern "C"
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnPause(JNIEnv *jenv,
-                                                                                    jclass type) {
-    LOG_INFO("nativeOnPause");
-    renderer->stop();
-}
+JNIEXPORT void JNICALL
+Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type) {
+    if (g_renderer) {
+        delete g_renderer;
+        g_renderer = NULL;
+    }
 
-extern "C"
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStop(JNIEnv *jenv,
-                                                                                   jclass type) {
-    LOG_INFO("nativeOnStop");
-    delete renderer;
-    renderer = nullptr;
-}
+    printGlString("Version", GL_VERSION);
+    printGlString("Vendor", GL_VENDOR);
+    printGlString("Renderer", GL_RENDERER);
+    printGlString("Extensions", GL_EXTENSIONS);
 
-extern "C"
-JNIEXPORT void JNICALL Java_tsaarni_nativeeglexample_NativeEglExample_nativeSetSurface(JNIEnv *jenv,
-                                                                                       jclass type,
-                                                                                       jobject surface) {
-    if (surface != nullptr) {
-        window = ANativeWindow_fromSurface(jenv, surface);
-        LOG_INFO("Got window %p", window);
-        renderer->setWindow(window);
+    const char* versionStr = (const char*)glGetString(GL_VERSION);
+    if (strstr(versionStr, "OpenGL ES 3.") && gl3stubInit()) {
+        g_renderer = createES3Renderer();
+    } else if (strstr(versionStr, "OpenGL ES 2.")) {
+        //g_renderer = createES2Renderer();
     } else {
-        LOG_INFO("Releasing window");
-        ANativeWindow_release(window);
+        LOG_ERROR("Unsupported OpenGL ES version");
     }
 
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_tsaarni_nativeeglexample_DemoLIB_resize(JNIEnv *env, jclass type, jint width, jint height) {
+    if (g_renderer) {
+        g_renderer->resize(width, height);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_tsaarni_nativeeglexample_DemoLIB_step(JNIEnv *env, jclass type) {
+    if (g_renderer) {
+        g_renderer->render();
+    }
+}
+

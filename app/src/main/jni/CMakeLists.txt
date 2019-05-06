@@ -28,7 +28,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        jniapi.cpp renderer.cpp)
+        jniapi.cpp renderer.cpp rendererES2.cpp rendererES3.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

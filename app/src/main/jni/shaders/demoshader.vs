@@ -1,0 +1,12 @@
+
+#version 300 es
+layout (location = 0) in vec2 a_Pos;
+layout (location = 1) in vec4 a_Color;
+layout (location = 2) in vec4 scaleRot;
+layout (location = 3) in vec2 offset;
+out vec4 vColor;
+void main() {
+    mat2 sr = mat2(scaleRot.xy, scaleRot.zw);
+    gl_Position = vec4(sr*a_Pos + offset, 0.0, 1.0);
+    vColor = a_Color;
+}

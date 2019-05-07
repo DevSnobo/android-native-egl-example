@@ -28,7 +28,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        jniapi.cpp renderer.cpp rendererES2.cpp rendererES3.cpp)
+        jniapi.cpp renderer.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -39,11 +39,6 @@ add_library( # Sets the name of the library.
 target_include_directories(nativeegl PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${ANDROID_NDK}/sources/android/native_app_glue)
-
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-find_package(Threads REQUIRED)
-target_link_libraries(nativeegl Threads::Threads)
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this

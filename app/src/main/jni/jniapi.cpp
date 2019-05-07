@@ -31,12 +31,6 @@ static void printGlString(const char* name, GLenum s) {
     LOG_INFO("GL %s: %s\n", name, v);
 }
 
-#if !defined(DYNAMIC_ES3)
-static GLboolean gl3stubInit() {
-    return GL_TRUE;
-}
-#endif
-
 extern "C"
 JNIEXPORT void JNICALL
 Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type) {
@@ -46,15 +40,17 @@ Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type) {
     }
 
     printGlString("Version", GL_VERSION);
+    LOG_INFO("%s", "------------\n");
     printGlString("Vendor", GL_VENDOR);
+    LOG_INFO("%s", "------------\n");
     printGlString("Renderer", GL_RENDERER);
+    LOG_INFO("%s", "------------\n");
     printGlString("Extensions", GL_EXTENSIONS);
+    LOG_INFO("%s", "------------\n");
 
     const char* versionStr = (const char*)glGetString(GL_VERSION);
-    if (strstr(versionStr, "OpenGL ES 3.") && gl3stubInit()) {
-        g_renderer = createES3Renderer();
-    } else if (strstr(versionStr, "OpenGL ES 2.")) {
-        //g_renderer = createES2Renderer();
+    if (strstr(versionStr, "OpenGL ES 3.")) {
+        g_renderer = createRenderer();
     } else {
         LOG_ERROR("Unsupported OpenGL ES version");
     }

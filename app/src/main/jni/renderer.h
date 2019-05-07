@@ -18,7 +18,7 @@
 #define RENDERER_H
 
 #include <pthread.h>
-#include <EGL/egl.h> // requires ndk r5 or newer
+#include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include "rendering/shader.hpp"
 #include "rendering/simplegeom.hpp"
@@ -49,44 +49,41 @@
 
 
 
-struct Vertex {
-    GLfloat pos[2];
-    GLubyte rgba[4];
-};
-extern const Vertex QUAD[4];
-extern bool checkGlError(const char* funcName);
-
 class Renderer {
 public:
+    Renderer();
     virtual ~Renderer();
+    bool init();
     void resize(int w, int h);
     void render();
 
 protected:
-    Renderer();
-
-    // return a pointer to a buffer of MAX_INSTANCES * sizeof(vec2).
+    /*// return a pointer to a buffer of MAX_INSTANCES * sizeof(vec2).
     // the buffer is filled with per-instance offsets, then unmapped.
-    virtual float* mapOffsetBuf() = 0;
-    virtual void unmapOffsetBuf() = 0;
+    virtual float* mapOffsetBuf();
+    virtual void unmapOffsetBuf();
     // return a pointer to a buffer of MAX_INSTANCES * sizeof(vec4).
     // the buffer is filled with per-instance scale and rotation transforms.
-    virtual float* mapTransformBuf() = 0;
-    virtual void unmapTransformBuf() = 0;
+    virtual float* mapTransformBuf();
 
-    virtual void draw(unsigned int numInstances) = 0;
+    virtual void unmapTransformBuf();
 
+    virtual void draw(unsigned int numInstances);*/
 private:
-    void calcSceneParams(unsigned int w, unsigned int h, float* offsets);
-    void step();
+    Shader *mShader;
+    SimpleGeom *mCube;
 
-    unsigned int mNumInstances;
-    float mScale[2];
-    float mAngularVelocity[MAX_INSTANCES];
-    uint64_t mLastFrameNs;
-    float mAngles[MAX_INSTANCES];
+    void draw();
+
+    /*unsigned int mNumInstances;
+    float mScale[2]{};
+    float mAngularVelocity[MAX_INSTANCES]{};
+    uint64_t mLastFrameNs{};
+    float mAngles[MAX_INSTANCES]{};*/
 };
 
+extern bool checkGlError(const char* funcName);
+extern Renderer* createRenderer();
 
 /*class Renderer {
 
@@ -124,7 +121,6 @@ private:
     EGLDisplay _display;
     EGLSurface _surface;
     EGLContext _context;
-    Shader _shader;
     SimpleGeom *_cube;
     GLfloat _angle;
 
@@ -143,7 +139,5 @@ private:
 
 };*/
 
-extern Renderer* createES2Renderer();
-extern Renderer* createES3Renderer();
 
 #endif // RENDERER_H

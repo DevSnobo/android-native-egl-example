@@ -62,7 +62,7 @@ static void _printShaderLog(GLuint shader) {
     char buf[2048];
     memset(buf, 0, sizeof(buf));
     LOGE("*** Getting info log for shader %u", shader);
-    glGetShaderInfoLog(shader, sizeof(buf) - 1, NULL, buf);
+    glGetShaderInfoLog(shader, sizeof(buf) - 1, nullptr, buf);
     LOGE("*** Info log:\n%s", buf);
 }
 
@@ -70,7 +70,7 @@ static void _printProgramLog(GLuint program) {
     char buf[2048];
     memset(buf, 0, sizeof(buf));
     LOGE("*** Getting info log for program %u", program);
-    glGetProgramInfoLog(program, sizeof(buf) - 1, NULL, buf);
+    glGetProgramInfoLog(program, sizeof(buf) - 1, nullptr, buf);
     LOGE("*** Info log:\n%s", buf);
 }
 
@@ -95,7 +95,7 @@ void Shader::Compile() {
     glShaderSource(mVertShaderH, 1, &vsrc, NULL);
     glCompileShader(mVertShaderH);
     glGetShaderiv(mVertShaderH, GL_COMPILE_STATUS, &status);
-    if (status == 0) {
+    if (status == GL_FALSE) {
         LOGE("*** Vertex shader compilation failed.");
         _printShaderLog(mVertShaderH);
         ABORT_GAME;
@@ -131,11 +131,11 @@ void Shader::Compile() {
     LOGD("Program linking succeeded.");
 
     glUseProgram(mProgramH);
-    /*mMVPMatrixLoc = glGetUniformLocation(mProgramH, "u_MVP");
+    mMVPMatrixLoc = glGetUniformLocation(mProgramH, "u_MVP");
     if (mMVPMatrixLoc < 0) {
         LOGE("*** Couldn't get shader's u_MVP matrix location from shader.");
         ABORT_GAME;
-    }*/
+    }
     mPositionLoc = glGetAttribLocation(mProgramH, "a_Position");
     if (mPositionLoc < 0) {
         LOGE("*** Couldn't get shader's a_Position attribute location.");
@@ -146,6 +146,8 @@ void Shader::Compile() {
         LOGE("*** Couldn't get shader's a_Color attribute location.");
         ABORT_GAME;
     }
+
+    //TODO: evaluate if needed
     mScaleRot = glGetAttribLocation(mProgramH, "scaleRot");
     if (mScaleRot < 0) {
         LOGE("*** Couldn't get shader's scaleRot attribute location.");
@@ -156,6 +158,8 @@ void Shader::Compile() {
         LOGE("*** Couldn't get shader's offset attribute location.");
         ABORT_GAME;
     }
+
+    //TODO: reminder, if there'll be textures, uncomment this
     /*mTexCoordLoc = glGetAttribLocation(mProgramH, "a_Tex");
     if (mTexCoordLoc < 0) {
         LOGE("*** Couldn't get shader's a_Tex attribute location.");
@@ -227,8 +231,7 @@ void Shader::Render(IndexBuf *ibuf, glm::mat4 *mvpMat) {
     MY_ASSERT(mPreparedVertexBuf != NULL);
 
     // push MVP matrix to shader
-    //TODO: reminder
-    //PushMVPMatrix(mvpMat);
+    PushMVPMatrix(mvpMat);
 
     if (ibuf) {
         // draw with index buffer

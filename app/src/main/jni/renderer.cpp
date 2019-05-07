@@ -27,16 +27,49 @@
 #include "logger.h"
 #include "renderer.h"
 
+constexpr GLuint VERTEX_DATA_SIZE = (7 * sizeof(float));
+constexpr int POS_OFFSET = (0 * sizeof(float));
+constexpr int COL_OFFSET = (3 * sizeof(float));
 
-/*static GLfloat vertices[] = {
-        -0x10000, -0x10000, -0x10000, 0x00000, 0x00000, 0x00000, 0x10000,
-        0x10000, -0x10000, -0x10000, 0x10000, 0x00000, 0x00000, 0x10000,
-        0x10000, 0x10000, -0x10000, 0x10000, 0x10000, 0x00000, 0x10000,
-        -0x10000, 0x10000, -0x10000, 0x00000, 0x10000, 0x00000, 0x10000,
-        -0x10000, -0x10000, 0x10000, 0x00000, 0x00000, 0x10000, 0x10000,
-        0x10000, -0x10000, 0x10000, 0x10000, 0x00000, 0x10000, 0x10000,
-        0x10000, 0x10000, 0x10000, 0x10000, 0x10000, 0x10000, 0x10000,
-        -0x10000, 0x10000, 0x10000, 0x00000, 0x10000, 0x10000, 0x10000
+
+//TODO: write shader for rendering floating cube
+//FIXME: current error: "cannot convert from float to vec4"
+static const char VERTEX_SHADER[] =
+        "#version 300 es\n"
+        "layout(location = 0) in vec3 a_Position;\n"
+        "layout(location = 1) in vec4 a_Color;\n"
+        "uniform mat4 u_MVP;\n"
+        "out vec4 vColor;\n"
+        "void main() {\n"
+        "    float f = 1.0;\n"
+        "    vec4 tmp = (a_Position.xyz, f);\n"
+        "    tmp = (u_MVP * tmp);\n"
+        "    gl_Position = vec3(tmp.xyz);\n"
+        "    vColor = a_Color;\n"
+        "}\n";
+
+//TODO: write shader for rendering floating cube
+static const char FRAG_SHADER[] =
+        "#version 300 es\n"
+        "precision mediump float;\n"
+        "in vec4 vColor;\n"
+        "out vec4 outColor;\n"
+        "void main() {\n"
+        "    outColor = vColor;\n"
+        "}\n";
+
+
+static GLfloat vertices[] = {
+        // vertex          colors
+        //  x     y     z     R     G     B     A
+        -1.0F,-1.0F,-1.0F, 0.0F, 0.0F, 0.0F, 1.0F,
+         1.0F,-1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F,
+         1.0F, 1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 1.0F,
+        -1.0F, 1.0F,-1.0F, 0.0F, 1.0F, 0.0F, 1.0F,
+        -1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F,
+         1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F,
+         1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F,
+        -1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F
 };
 
 GLushort indices[] = {
@@ -46,18 +79,11 @@ GLushort indices[] = {
         3, 7, 4, 3, 4, 0,
         4, 7, 6, 4, 6, 5,
         3, 0, 1, 3, 1, 2
-};*/
-
-const Vertex QUAD[4] = {
-        // Square with diagonal < 2 so that it fits in a [-1 .. 1]^2 square
-        // regardless of rotation.
-        {{-0.7f, -0.7f}, {0x00, 0xFF, 0x00}},
-        {{ 0.7f, -0.7f}, {0x00, 0x00, 0xFF}},
-        {{-0.7f,  0.7f}, {0xFF, 0x00, 0x00}},
-        {{ 0.7f,  0.7f}, {0xFF, 0xFF, 0xFF}},
 };
 
-bool checkGlError(const char* funcName) {
+GLuint VAO; GLuint VBO; GLuint EBO;
+
+bool checkGlError(const char *funcName) {
     GLint err = glGetError();
     if (err != GL_NO_ERROR) {
         ALOGE("GL error after %s(): 0x%08x\n", funcName, err);
@@ -66,56 +92,107 @@ bool checkGlError(const char* funcName) {
     return false;
 }
 
-Renderer::Renderer()
-        :   mNumInstances(0),
-            mLastFrameNs(0)
-{
-    memset(mScale, 0, sizeof(mScale));
-    memset(mAngularVelocity, 0, sizeof(mAngularVelocity));
-    memset(mAngles, 0, sizeof(mAngles));
+Renderer *createRenderer() {
+    auto *renderer = new Renderer;
+    if (!renderer->init()) {
+        delete renderer;
+        return nullptr;
+    }
+    return renderer;
 }
 
-Renderer::~Renderer() {
+Renderer::Renderer() {
+}
+
+Renderer::~Renderer() = default;
+
+bool Renderer::init() {
+    mShader = new Shader(VERTEX_SHADER, FRAG_SHADER);
+    mCube = new SimpleGeom(new VertexBuf(vertices, sizeof(vertices), VERTEX_DATA_SIZE),
+                           new IndexBuf(indices, sizeof(indices)));
+    mCube->vbuf->SetColorsOffset(COL_OFFSET);
+    mShader->Compile();
+    mShader->BindShader();
+
+    //TODO: fill buffers
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_DATA_SIZE, (void*)POS_OFFSET);
+    glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERTEX_DATA_SIZE, (void*)COL_OFFSET);
+    glEnableVertexAttribArray(1);
+
+    mShader->UnbindShader();
+
+    ALOGV("Using OpenGL ES 3.0 renderer");
+    return true;
 }
 
 void Renderer::resize(int w, int h) {
-    auto offsets = mapOffsetBuf();
-    calcSceneParams(w, h, offsets);
-    unmapOffsetBuf();
-
-    // Auto gives a signed int :-(
-    for (auto i = (unsigned)0; i < mNumInstances; i++) {
-        mAngles[i] = drand48() * TWO_PI;
-        mAngularVelocity[i] = MAX_ROT_SPEED * (2.0*drand48() - 1.0);
-    }
-
-    mLastFrameNs = 0;
-
     glViewport(0, 0, w, h);
 }
 
-void Renderer::calcSceneParams(unsigned int w, unsigned int h,
-                               float* offsets) {
+void Renderer::render() {
+    //FIXME: is this useful?
+    //step();
+    glClearColor(0.2F, 0.2F, 0.3F, 1.0F);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    draw();
+    checkGlError("Renderer::render");
+}
+
+void Renderer::draw() {
+    mShader->BindShader();
+    //mCube->vbuf->SetPrimitive(GL_TRIANGLE_STRIP);
+    //mShader->BeginRender(mCube->vbuf);
+
+    /* glm::vec4 vec = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+     glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
+     vec = trans * vec;
+     glm::mat4 viewMat = glm::lookAt(glm::vec3(0,0,10), glm::vec3(0,0,9), glm::vec3(-sin(0.1f), 0, cos(-0.f)));*/
+
+    /*glm::mat4 id = glm::mat4(1.0F);
+    glm::mat4 trans = glm::translate(id, glm::vec3(0, 0, -10.0));
+    mShader->Render(mCube->ibuf, &trans);*/
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+}
+
+/*void Renderer::calcSceneParams(unsigned int w, unsigned int h,
+                               float *offsets) {
     // number of cells along the larger screen dimension
     const float NCELLS_MAJOR = MAX_INSTANCES_PER_SIDE;
     // cell size in scene space
-    const float CELL_SIZE = 2.0f / NCELLS_MAJOR;
+    const float CELL_SIZE = 2.0F / NCELLS_MAJOR;
 
     // Calculations are done in "landscape", i.e. assuming dim[0] >= dim[1].
     // Only at the end are values put in the opposite order if h > w.
-    const float dim[2] = {fmaxf(w,h), fminf(w,h)};
+    const float dim[2] = {fmaxf(w, h), fminf(w, h)};
     const float aspect[2] = {dim[0] / dim[1], dim[1] / dim[0]};
-    const float scene2clip[2] = {1.0f, aspect[0]};
+    const float scene2clip[2] = {1.0F, aspect[0]};
     const int ncells[2] = {
             static_cast<int>(NCELLS_MAJOR),
-            (int)floorf(NCELLS_MAJOR * aspect[1])
+            (int) floorf(NCELLS_MAJOR * aspect[1])
     };
 
     float centers[2][MAX_INSTANCES_PER_SIDE];
     for (int d = 0; d < 2; d++) {
         auto offset = -ncells[d] / NCELLS_MAJOR; // -1.0 for d=0
         for (auto i = 0; i < ncells[d]; i++) {
-            centers[d][i] = scene2clip[d] * (CELL_SIZE*(i + 0.5f) + offset);
+            centers[d][i] = scene2clip[d] * (CELL_SIZE * (i + 0.5F) + offset);
         }
     }
 
@@ -124,21 +201,21 @@ void Renderer::calcSceneParams(unsigned int w, unsigned int h,
     // outer product of centers[0] and centers[1]
     for (int i = 0; i < ncells[0]; i++) {
         for (int j = 0; j < ncells[1]; j++) {
-            int idx = i*ncells[1] + j;
-            offsets[2*idx + major] = centers[0][i];
-            offsets[2*idx + minor] = centers[1][j];
+            int idx = i * ncells[1] + j;
+            offsets[2 * idx + major] = centers[0][i];
+            offsets[2 * idx + minor] = centers[1][j];
         }
     }
 
     mNumInstances = ncells[0] * ncells[1];
-    mScale[major] = 0.5f * CELL_SIZE * scene2clip[0];
-    mScale[minor] = 0.5f * CELL_SIZE * scene2clip[1];
-}
+    mScale[major] = 0.5F * CELL_SIZE * scene2clip[0];
+    mScale[minor] = 0.5F * CELL_SIZE * scene2clip[1];
+}*/
 
-void Renderer::step() {
-    timespec now;
+/*void Renderer::step() {
+    timespec now{};
     clock_gettime(CLOCK_MONOTONIC, &now);
-    auto nowNs = now.tv_sec*1000000000ull + now.tv_nsec;
+    auto nowNs = now.tv_sec * 1000000000ULL + now.tv_nsec;
 
     if (mLastFrameNs > 0) {
         float dt = float(nowNs - mLastFrameNs) * 0.000000001f;
@@ -152,61 +229,26 @@ void Renderer::step() {
             }
         }
 
-        float* transforms = mapTransformBuf();
+        float *transforms = mapTransformBuf();
         for (unsigned int i = 0; i < mNumInstances; i++) {
             float s = sinf(mAngles[i]);
             float c = cosf(mAngles[i]);
-            transforms[4*i + 0] =  c * mScale[0];
-            transforms[4*i + 1] =  s * mScale[1];
-            transforms[4*i + 2] = -s * mScale[0];
-            transforms[4*i + 3] =  c * mScale[1];
+            transforms[4 * i + 0] = c * mScale[0];
+            transforms[4 * i + 1] = s * mScale[1];
+            transforms[4 * i + 2] = -s * mScale[0];
+            transforms[4 * i + 3] = c * mScale[1];
         }
         unmapTransformBuf();
     }
 
     mLastFrameNs = nowNs;
-}
+}*/
 
-void Renderer::render() {
-    step();
-
-    glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    draw(mNumInstances);
-    checkGlError("Renderer::render");
-}
 
 
 
 
 /*
-
-Renderer::Renderer()
-        : _msg(MSG_NONE), _display(nullptr), _surface(nullptr), _context(nullptr), _shader(nullptr),
-          _cube(nullptr), _angle(0) {
-    LOG_INFO("Renderer instance created");
-}
-
-Renderer::~Renderer() {
-    LOG_INFO("Renderer instance destroyed");
-}
-
-void Renderer::start() {
-    LOG_INFO("Creating renderer thread");
-    pthread_create(&_threadId, nullptr, threadStartCallback, this);
-}
-
-void Renderer::stop() {
-    LOG_INFO("Stopping renderer thread");
-
-    // send message to render thread to stop rendering
-    pthread_mutex_lock(&_mutex);
-    _msg = MSG_RENDER_LOOP_EXIT;
-    pthread_mutex_unlock(&_mutex);
-
-    pthread_join(_threadId, nullptr);
-    LOG_INFO("Renderer thread stopped");
-}
 
 void Renderer::renderLoop() {
     bool renderingEnabled = true;

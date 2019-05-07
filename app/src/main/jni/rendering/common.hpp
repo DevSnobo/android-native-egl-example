@@ -32,7 +32,7 @@ extern "C" {
 #include "../glm/gtc/type_ptr.hpp"
 #include "../glm/gtc/matrix_transform.hpp"
 
-#define DEBUG_TAG "EndlessTunnel:Native"
+#define DEBUG_TAG "DemoRenderer:rendering"
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, __VA_ARGS__))
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, DEBUG_TAG, __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, DEBUG_TAG, __VA_ARGS__))

@@ -41,9 +41,10 @@ static const char VERTEX_SHADER[] =
         "uniform mat4 u_MVP;\n"
         "out vec4 vColor;\n"
         "void main() {\n"
-        "    float f = 1.0;\n"
-        "    vec4 tmp = (a_Position.xyz, f);\n"
-        "    tmp = (u_MVP * tmp);\n"
+        "float x = a_Position.x;\n"
+        "float y = a_Position.y;\n"
+        "float z = a_Position.z;\n"
+        "    vec4 tmp = vec4(x, y, z, x);\n" //removed mvp matrix to test
         "    gl_Position = vec3(tmp.xyz);\n"
         "    vColor = a_Color;\n"
         "}\n";

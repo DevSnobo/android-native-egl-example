@@ -136,13 +136,11 @@ void Shader::Compile() {
         LOGE("*** Couldn't get shader's u_MVP matrix location from shader.");
         ABORT_GAME;
     }
-    mPositionLoc = 0;
-    //mPositionLoc = glGetAttribLocation(mProgramH, "a_Position");
+    mPositionLoc = glGetAttribLocation(mProgramH, "a_Position");
     if (mPositionLoc < 0) {
         LOGE("*** Couldn't get shader's a_Position attribute location.");
         ABORT_GAME;
     }
-    mColorLoc = 1;
     mColorLoc = glGetAttribLocation(mProgramH, "a_Color");
     if (mColorLoc < 0) {
         LOGE("*** Couldn't get shader's a_Color attribute location.");

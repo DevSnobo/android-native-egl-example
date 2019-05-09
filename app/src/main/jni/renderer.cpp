@@ -41,7 +41,7 @@ static const char VERTEX_SHADER[] =
         "layout (location = 2) uniform mat4 u_MVP;\n"
         "out vec4 vColor;\n"
         "void main() {\n"
-        "    vec4 hom_Pos = vec4(a_Position, 1.0);\n" //removed mvp matrix to test
+        "    vec4 hom_Pos = vec4(a_Position, 1.0);\n"
         "    gl_Position = u_MVP * hom_Pos;\n"
         "    vColor = a_Color;\n"
         "}\n";
@@ -60,10 +60,10 @@ static const char FRAG_SHADER[] =
 static GLfloat vertices[] = {
         // vertex          colors
         //  x     y     z     R     G     B     A
-       -1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.2F, // 5
-        1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 0.2F, // 6
-        1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.2F, // 7
-       -1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.2F // 8
+       -1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.1F, // 5
+        1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 0.1F, // 6
+        1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.1F, // 7
+       -1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.1F, // 8
        -1.0F,-1.0F,-1.0F, 0.0F, 0.0F, 0.0F, 0.2F, // 1
         1.0F,-1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 0.2F, // 2
         1.0F, 1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 0.2F, // 3
@@ -157,23 +157,21 @@ void Renderer::resize(int w, int h) {
 }
 
 void Renderer::render() {
-    //FIXME: is this useful?
-    //step();
     glClearColor(0.2F, 0.2F, 0.3F, 1.0F);
-    // Enable depth test
     glEnable(GL_DEPTH_TEST);
-    // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
     glCullFace(GL_FRONT_AND_BACK);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     draw();
+
     checkGlError("Renderer::render");
     LOG_INFO("--------- render() -----------");
 }
 
 void Renderer::draw() {
     mShader->BindShader();
+    glBindVertexArray(VAO);
     //mCube->vbuf->SetPrimitive(GL_TRIANGLE_STRIP);
     //mShader->BeginRender(mCube->vbuf);
     //mShader->Render(mCube->ibuf, &trans);
@@ -186,18 +184,18 @@ void Renderer::draw() {
 
     //LearnOpenGL
     glm::mat4 id = glm::mat4(1.0F);
-    /*glm::mat4 mvp = glm::mat4(1.0F);
+    glm::mat4 mvp = glm::mat4(1.0F);
+    glm::vec3 axisX = glm::vec3(1.0, 0.0, 0.0);
+    glm::vec3 axisY = glm::vec3(0.0, 1.0, 0.0);
+    glm::vec3 axisZ = glm::vec3(0.0, 0.0, 1.0);
 
+    //mvp = glm::translate(mvp, glm::vec3(0.0, 0.0, 1.0));
+    mvp = glm::rotate_slow(mvp, glm::radians(-10.0F), axisX);
+    mvp = glm::rotate_slow(mvp, glm::radians(30.0F), axisY);
     mvp = glm::scale(mvp, glm::vec3(0.5f, 0.5f, 0.5f));
 
-    mvp = glm::translate(mvp, glm::vec3(0.0, 0.0, 1.0));
-
-    glm::vec3 axisZ = glm::vec3(0.0, 0.0, 1.0);
-    glm::vec3 axisY = glm::vec3(0.0, 1.0, 0.0);
-    glm::vec3 axisX = glm::vec3(1.0, 0.0, 0.0);
-    //mvp = glm::rotate_slow(mvp, glm::radians(45.0F), axisZ);
-    mvp = glm::rotate_slow(mvp, glm::radians(15.0F), axisY);
-    mvp = glm::rotate_slow(mvp, glm::radians(-15.0F), axisX);*/
+    /*glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f * 9/18, 0.1f, 2.0f);
+    mvp = projection * mvp;*/
 
 
     //SO
@@ -207,10 +205,10 @@ void Renderer::draw() {
 
 
     //Wikibooks
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -1.0));
+    /*glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, 1.0));
     glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f * 18/9, 0.1f, 10.0f);
-    glm::mat4 mvp = model;
+    glm::mat4 mvp = model;*/
 
     /*//PROJECTION
     glm::mat4 Projection = glm::perspective(45.0f, 1.0f, 0.1f, 100.0f);
@@ -234,7 +232,8 @@ void Renderer::draw() {
     mShader->PushMVPMatrix(&mvp);
 
     //glDrawArrays(GL_TRIANGLE_FAN, 0, 36);
-    glDrawElements(GL_LINE_LOOP, sizeof(indices), GL_UNSIGNED_SHORT, (void*)0);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
+    glDrawElements(GL_LINES, 36, GL_UNSIGNED_INT, (void*)0);
     //glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices), GL_UNSIGNED_INT, 0);
 }
 

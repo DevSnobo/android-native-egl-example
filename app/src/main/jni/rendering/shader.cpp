@@ -136,11 +136,13 @@ void Shader::Compile() {
         LOGE("*** Couldn't get shader's u_MVP matrix location from shader.");
         ABORT_GAME;
     }
-    mPositionLoc = glGetAttribLocation(mProgramH, "a_Position");
+    mPositionLoc = 0;
+    //mPositionLoc = glGetAttribLocation(mProgramH, "a_Position");
     if (mPositionLoc < 0) {
         LOGE("*** Couldn't get shader's a_Position attribute location.");
         ABORT_GAME;
     }
+    mColorLoc = 1;
     mColorLoc = glGetAttribLocation(mProgramH, "a_Color");
     if (mColorLoc < 0) {
         LOGE("*** Couldn't get shader's a_Color attribute location.");
@@ -148,7 +150,7 @@ void Shader::Compile() {
     }
 
     //TODO: evaluate if needed
-    mScaleRot = glGetAttribLocation(mProgramH, "scaleRot");
+    /*mScaleRot = glGetAttribLocation(mProgramH, "scaleRot");
     if (mScaleRot < 0) {
         LOGE("*** Couldn't get shader's scaleRot attribute location.");
         ABORT_GAME;
@@ -157,7 +159,7 @@ void Shader::Compile() {
     if (mOffset < 0) {
         LOGE("*** Couldn't get shader's offset attribute location.");
         ABORT_GAME;
-    }
+    }*/
 
     //TODO: reminder, if there'll be textures, uncomment this
     /*mTexCoordLoc = glGetAttribLocation(mProgramH, "a_Tex");

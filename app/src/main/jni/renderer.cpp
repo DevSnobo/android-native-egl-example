@@ -35,23 +35,20 @@ constexpr int COL_OFFSET = (3 * sizeof(float));
 //TODO: write shader for rendering floating cube
 //FIXME: current error: "cannot convert from float to vec4"
 static const char VERTEX_SHADER[] =
-        "#version 300 es\n"
+        "#version 320 es\n"
         "layout(location = 0) in vec3 a_Position;\n"
         "layout(location = 1) in vec4 a_Color;\n"
-        "uniform mat4 u_MVP;\n"
+        "layout (location = 2) uniform mat4 u_MVP;\n"
         "out vec4 vColor;\n"
         "void main() {\n"
-        "float x = a_Position.x;\n"
-        "float y = a_Position.y;\n"
-        "float z = a_Position.z;\n"
-        "    vec4 tmp = vec4(x, y, z, x);\n" //removed mvp matrix to test
-        "    gl_Position = vec3(tmp.xyz);\n"
+        "    vec4 hom_Pos = vec4(a_Position, 1.0);\n" //removed mvp matrix to test
+        "    gl_Position = u_MVP * hom_Pos;\n"
         "    vColor = a_Color;\n"
         "}\n";
 
 //TODO: write shader for rendering floating cube
 static const char FRAG_SHADER[] =
-        "#version 300 es\n"
+        "#version 320 es\n"
         "precision mediump float;\n"
         "in vec4 vColor;\n"
         "out vec4 outColor;\n"
@@ -63,23 +60,35 @@ static const char FRAG_SHADER[] =
 static GLfloat vertices[] = {
         // vertex          colors
         //  x     y     z     R     G     B     A
-        -1.0F,-1.0F,-1.0F, 0.0F, 0.0F, 0.0F, 1.0F,
-         1.0F,-1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F,
-         1.0F, 1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 1.0F,
-        -1.0F, 1.0F,-1.0F, 0.0F, 1.0F, 0.0F, 1.0F,
-        -1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F,
-         1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F,
-         1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F,
-        -1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F
+       -1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.2F, // 5
+        1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 0.2F, // 6
+        1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.2F, // 7
+       -1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.2F // 8
+       -1.0F,-1.0F,-1.0F, 0.0F, 0.0F, 0.0F, 0.2F, // 1
+        1.0F,-1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 0.2F, // 2
+        1.0F, 1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 0.2F, // 3
+       -1.0F, 1.0F,-1.0F, 0.0F, 1.0F, 0.0F, 0.2F, // 4
 };
 
-GLushort indices[] = {
-        0, 4, 5, 0, 5, 1,
-        1, 5, 6, 1, 6, 2,
-        2, 6, 7, 2, 7, 3,
-        3, 7, 4, 3, 4, 0,
-        4, 7, 6, 4, 6, 5,
-        3, 0, 1, 3, 1, 2
+GLuint indices[] = {
+        // front
+        0, 1, 2,
+        2, 3, 0,
+        // right
+        1, 5, 6,
+        6, 2, 1,
+        // back
+        7, 6, 5,
+        5, 4, 7,
+        // left
+        4, 0, 3,
+        3, 7, 4,
+        // bottom
+        4, 5, 1,
+        1, 0, 4,
+        // top
+        3, 2, 6,
+        6, 7, 3
 };
 
 GLuint VAO; GLuint VBO; GLuint EBO;
@@ -109,9 +118,9 @@ Renderer::~Renderer() = default;
 
 bool Renderer::init() {
     mShader = new Shader(VERTEX_SHADER, FRAG_SHADER);
-    mCube = new SimpleGeom(new VertexBuf(vertices, sizeof(vertices), VERTEX_DATA_SIZE),
+    /*mCube = new SimpleGeom(new VertexBuf(vertices, sizeof(vertices), VERTEX_DATA_SIZE),
                            new IndexBuf(indices, sizeof(indices)));
-    mCube->vbuf->SetColorsOffset(COL_OFFSET);
+    mCube->vbuf->SetColorsOffset(COL_OFFSET);*/
     mShader->Compile();
     mShader->BindShader();
 
@@ -138,38 +147,95 @@ bool Renderer::init() {
     mShader->UnbindShader();
 
     ALOGV("Using OpenGL ES 3.0 renderer");
+    LOG_INFO("--------- finished init() -----------");
     return true;
 }
 
 void Renderer::resize(int w, int h) {
     glViewport(0, 0, w, h);
+    LOG_INFO("--------- finished resize() -----------");
 }
 
 void Renderer::render() {
     //FIXME: is this useful?
     //step();
     glClearColor(0.2F, 0.2F, 0.3F, 1.0F);
+    // Enable depth test
+    glEnable(GL_DEPTH_TEST);
+    // Accept fragment if it closer to the camera than the former one
+    glDepthFunc(GL_LESS);
+    glCullFace(GL_FRONT_AND_BACK);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     draw();
     checkGlError("Renderer::render");
+    LOG_INFO("--------- render() -----------");
 }
 
 void Renderer::draw() {
     mShader->BindShader();
     //mCube->vbuf->SetPrimitive(GL_TRIANGLE_STRIP);
     //mShader->BeginRender(mCube->vbuf);
+    //mShader->Render(mCube->ibuf, &trans);
 
-    /* glm::vec4 vec = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-     glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
-     vec = trans * vec;
-     glm::mat4 viewMat = glm::lookAt(glm::vec3(0,0,10), glm::vec3(0,0,9), glm::vec3(-sin(0.1f), 0, cos(-0.f)));*/
+    /* glm::mat4 viewMat = glm::lookAt(glm::vec3(0,0,10), glm::vec3(0,0,9), glm::vec3(-sin(0.1f), 0, cos(-0.f)));*/
 
     /*glm::mat4 id = glm::mat4(1.0F);
-    glm::mat4 trans = glm::translate(id, glm::vec3(0, 0, -10.0));
-    mShader->Render(mCube->ibuf, &trans);*/
+    glm::mat4 trans = glm::translate(id, glm::vec3(1.0, 1.0, 0.0));
+    glm::mat4 scale = glm::scale(id, glm::vec3(0.3, 0.3, 0.3));*/
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+    //LearnOpenGL
+    glm::mat4 id = glm::mat4(1.0F);
+    /*glm::mat4 mvp = glm::mat4(1.0F);
+
+    mvp = glm::scale(mvp, glm::vec3(0.5f, 0.5f, 0.5f));
+
+    mvp = glm::translate(mvp, glm::vec3(0.0, 0.0, 1.0));
+
+    glm::vec3 axisZ = glm::vec3(0.0, 0.0, 1.0);
+    glm::vec3 axisY = glm::vec3(0.0, 1.0, 0.0);
+    glm::vec3 axisX = glm::vec3(1.0, 0.0, 0.0);
+    //mvp = glm::rotate_slow(mvp, glm::radians(45.0F), axisZ);
+    mvp = glm::rotate_slow(mvp, glm::radians(15.0F), axisY);
+    mvp = glm::rotate_slow(mvp, glm::radians(-15.0F), axisX);*/
+
+
+    //SO
+    /*glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+    glm::mat4 view = glm::lookAt(glm::vec3(4,3,3), glm::vec3(0,0,0), glm::vec3(0,1,0));
+    //mvp = projection*view;*/
+
+
+    //Wikibooks
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -1.0));
+    glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f * 18/9, 0.1f, 10.0f);
+    glm::mat4 mvp = model;
+
+    /*//PROJECTION
+    glm::mat4 Projection = glm::perspective(45.0f, 1.0f, 0.1f, 100.0f);
+
+    //VIEW
+    glm::mat4 View = glm::mat4(1.0f);
+    View = glm::translate(View, glm::vec3(2.0f,4.0f, -25.0f));
+
+    //MODEL
+    glm::mat4 Model = glm::mat4(1.0);
+    //Scale by factor 0.5
+    Model = glm::scale(glm::mat4(1.0f),glm::vec3(0.5f));
+
+
+    glm::mat4 MVP = Projection * View * Model;*/
+
+
+    mShader->PushPositions(POS_OFFSET, VERTEX_DATA_SIZE);
+    mShader->PushColors(COL_OFFSET, VERTEX_DATA_SIZE);
+    //mShader->PushMVPMatrix(&trans);
+    mShader->PushMVPMatrix(&mvp);
+
+    //glDrawArrays(GL_TRIANGLE_FAN, 0, 36);
+    glDrawElements(GL_LINE_LOOP, sizeof(indices), GL_UNSIGNED_SHORT, (void*)0);
+    //glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices), GL_UNSIGNED_INT, 0);
 }
 
 /*void Renderer::calcSceneParams(unsigned int w, unsigned int h,

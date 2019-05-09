@@ -32,8 +32,7 @@ constexpr int POS_OFFSET = (0 * sizeof(float));
 constexpr int COL_OFFSET = (3 * sizeof(float));
 
 
-//TODO: write shader for rendering floating cube
-//FIXME: current error: "cannot convert from float to vec4"
+//TODO: add uniforms for proper multiplication for projection * view * model * local_coords
 static const char VERTEX_SHADER[] =
         "#version 320 es\n"
         "layout(location = 0) in vec3 a_Position;\n"
@@ -46,7 +45,6 @@ static const char VERTEX_SHADER[] =
         "    vColor = a_Color;\n"
         "}\n";
 
-//TODO: write shader for rendering floating cube
 static const char FRAG_SHADER[] =
         "#version 320 es\n"
         "precision mediump float;\n"
@@ -118,14 +116,10 @@ Renderer::~Renderer() = default;
 
 bool Renderer::init() {
     mShader = new Shader(VERTEX_SHADER, FRAG_SHADER);
-    /*mCube = new SimpleGeom(new VertexBuf(vertices, sizeof(vertices), VERTEX_DATA_SIZE),
-                           new IndexBuf(indices, sizeof(indices)));
-    mCube->vbuf->SetColorsOffset(COL_OFFSET);*/
     mShader->Compile();
     mShader->BindShader();
 
-    //TODO: fill buffers
-
+    // fill buffers
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -137,6 +131,7 @@ bool Renderer::init() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+    // set attributes
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_DATA_SIZE, (void*)POS_OFFSET);
     glEnableVertexAttribArray(0);
@@ -156,6 +151,7 @@ void Renderer::resize(int w, int h) {
     LOG_INFO("--------- finished resize() -----------");
 }
 
+//TODO: find out correct order of settings-draw-clear-etc
 void Renderer::render() {
     glClearColor(0.2F, 0.2F, 0.3F, 1.0F);
     glEnable(GL_DEPTH_TEST);
@@ -172,71 +168,50 @@ void Renderer::render() {
 void Renderer::draw() {
     mShader->BindShader();
     glBindVertexArray(VAO);
-    //mCube->vbuf->SetPrimitive(GL_TRIANGLE_STRIP);
-    //mShader->BeginRender(mCube->vbuf);
-    //mShader->Render(mCube->ibuf, &trans);
 
-    /* glm::mat4 viewMat = glm::lookAt(glm::vec3(0,0,10), glm::vec3(0,0,9), glm::vec3(-sin(0.1f), 0, cos(-0.f)));*/
-
-    /*glm::mat4 id = glm::mat4(1.0F);
-    glm::mat4 trans = glm::translate(id, glm::vec3(1.0, 1.0, 0.0));
-    glm::mat4 scale = glm::scale(id, glm::vec3(0.3, 0.3, 0.3));*/
-
+    //TODO: change model, view and projection matrix to uniforms passed into the shader
+    //TODO: add slow rotation with some (time function % 360.0F)
+    //TODO: add touch listener to change direction of rotation
     //LearnOpenGL
-    glm::mat4 id = glm::mat4(1.0F);
-    glm::mat4 mvp = glm::mat4(1.0F);
+    // matrix definitions
+
     glm::vec3 axisX = glm::vec3(1.0, 0.0, 0.0);
     glm::vec3 axisY = glm::vec3(0.0, 1.0, 0.0);
     glm::vec3 axisZ = glm::vec3(0.0, 0.0, 1.0);
 
-    //mvp = glm::translate(mvp, glm::vec3(0.0, 0.0, 1.0));
-    mvp = glm::rotate_slow(mvp, glm::radians(-10.0F), axisX);
-    mvp = glm::rotate_slow(mvp, glm::radians(30.0F), axisY);
-    mvp = glm::scale(mvp, glm::vec3(0.5f, 0.5f, 0.5f));
+    glm::mat4 model = glm::mat4(1.0F);
+    glm::mat4 view = glm::mat4(1.0F);
+    glm::mat4 projection = glm::mat4(1.0F);
 
-    /*glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f * 9/18, 0.1f, 2.0f);
-    mvp = projection * mvp;*/
+    //model = glm::translate(model, glm::vec3(0.0, -0.5, 0.0));
+    model = glm::rotate_slow(model, glm::radians(-20.0F), axisY);
+    model = glm::rotate_slow(model, glm::radians(15.0F), axisX);
+    model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
+    view = glm::translate(view, glm::vec3(0.0, 0.0, -5.0));
 
-    //SO
-    /*glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
-    glm::mat4 view = glm::lookAt(glm::vec3(4,3,3), glm::vec3(0,0,0), glm::vec3(0,1,0));
-    //mvp = projection*view;*/
+    //projection = glm::ortho(-5.0, 5.0, -5.0, 5.0, 0.1, 10.0);
+    projection = glm::perspective(glm::radians(45.0f), 1.0f * 9/18, 0.1f, 10.0f);
 
+    //FIXME: this should happen in the shader
+    glm::mat4 mvp = projection * view * model;
+    // end definitions
 
-    //Wikibooks
-    /*glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, 1.0));
-    glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f * 18/9, 0.1f, 10.0f);
-    glm::mat4 mvp = model;*/
-
-    /*//PROJECTION
-    glm::mat4 Projection = glm::perspective(45.0f, 1.0f, 0.1f, 100.0f);
-
-    //VIEW
-    glm::mat4 View = glm::mat4(1.0f);
-    View = glm::translate(View, glm::vec3(2.0f,4.0f, -25.0f));
-
-    //MODEL
-    glm::mat4 Model = glm::mat4(1.0);
-    //Scale by factor 0.5
-    Model = glm::scale(glm::mat4(1.0f),glm::vec3(0.5f));
-
-
-    glm::mat4 MVP = Projection * View * Model;*/
-
+    //TODO: find out what "lookAt" does
+    //glm::mat4 view = glm::lookAt(glm::vec3(4,3,3), glm::vec3(0,0,0), glm::vec3(0,1,0));
 
     mShader->PushPositions(POS_OFFSET, VERTEX_DATA_SIZE);
     mShader->PushColors(COL_OFFSET, VERTEX_DATA_SIZE);
-    //mShader->PushMVPMatrix(&trans);
     mShader->PushMVPMatrix(&mvp);
 
-    //glDrawArrays(GL_TRIANGLE_FAN, 0, 36);
+    //TODO: draw edges of cube with a *black* line, only edges
+    //TODO: --> declare seperate VBO with black as color, maybe use bufferSubData?
+    //TODO: replace magic numbers, sizeof() somehow invalidates the draw call
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
-    glDrawElements(GL_LINES, 36, GL_UNSIGNED_INT, (void*)0);
-    //glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_LINE_STRIP, 36, GL_UNSIGNED_INT, (void*)0);
 }
 
+//TODO: delete?
 /*void Renderer::calcSceneParams(unsigned int w, unsigned int h,
                                float *offsets) {
     // number of cells along the larger screen dimension
@@ -278,91 +253,24 @@ void Renderer::draw() {
     mScale[minor] = 0.5F * CELL_SIZE * scene2clip[1];
 }*/
 
-/*void Renderer::step() {
-    timespec now{};
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    auto nowNs = now.tv_sec * 1000000000ULL + now.tv_nsec;
-
-    if (mLastFrameNs > 0) {
-        float dt = float(nowNs - mLastFrameNs) * 0.000000001f;
-
-        for (unsigned int i = 0; i < mNumInstances; i++) {
-            mAngles[i] += mAngularVelocity[i] * dt;
-            if (mAngles[i] >= TWO_PI) {
-                mAngles[i] -= TWO_PI;
-            } else if (mAngles[i] <= -TWO_PI) {
-                mAngles[i] += TWO_PI;
-            }
-        }
-
-        float *transforms = mapTransformBuf();
-        for (unsigned int i = 0; i < mNumInstances; i++) {
-            float s = sinf(mAngles[i]);
-            float c = cosf(mAngles[i]);
-            transforms[4 * i + 0] = c * mScale[0];
-            transforms[4 * i + 1] = s * mScale[1];
-            transforms[4 * i + 2] = -s * mScale[0];
-            transforms[4 * i + 3] = c * mScale[1];
-        }
-        unmapTransformBuf();
-    }
-
-    mLastFrameNs = nowNs;
-}*/
-
-
-
-
-
+//TODO: evaluate use of egl instead of plain gl
 /*
+void Renderer::destroy() {
+    LOG_INFO("Destroying context");
 
-void Renderer::renderLoop() {
-    bool renderingEnabled = true;
+    eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglDestroyContext(_display, _context);
+    eglDestroySurface(_display, _surface);
+    eglTerminate(_display);
 
-    LOG_INFO("renderLoop()");
-    while (renderingEnabled) {
-
-        pthread_mutex_lock(&_mutex);
-
-        // FIXME: thread locks are weird
-        // process incoming messages
-        switch (_msg) {
-
-            case MSG_WINDOW_SET:
-                LOG_INFO("CASE_WINDOW_SET");
-                initialize();
-                break;
-
-            case MSG_RENDER_LOOP_EXIT:
-                LOG_INFO("CASE_EXIT");
-                renderingEnabled = false;
-                destroy();
-                break;
-
-            default:
-                LOG_INFO("CASE_DEFAULT");
-                break;
-        }
-        _msg = MSG_NONE;
-
-        if (_display) {
-            drawFrame();
-                LOG_ERROR("NOW drawing frame ...");
-            if (!eglSwapBuffers(_display, _surface)) {
-                LOG_ERROR("eglSwapBuffers() returned error %d", eglGetError());
-            }
-        } else {
-            LOG_ERROR("----- NOT DRAWING -----");
-        }
-
-        pthread_mutex_unlock(&_mutex);
-        //eglSwapBuffers(_display, _surface);
-        LOG_ERROR("----- NOT DRAWING -----");
-    }
-
-    LOG_INFO("Render loop exits");
+    _display = EGL_NO_DISPLAY;
+    _surface = EGL_NO_SURFACE;
+    _context = EGL_NO_CONTEXT;
 }
+*/
 
+//TODO: use when maybe switching to egl?
+/*
 bool Renderer::initialize() {
     const EGLint attribs[] = {
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -444,106 +352,4 @@ bool Renderer::initialize() {
     glEnable(GL_DEPTH_TEST);
 
     glViewport(0, 0, width, height);
-
-    // FIXME: Shader declaration
-    _shader = new Shader("shaders/shader.vs", "shaders/shader.fs");
-    _shader.Compile();
-
-    _cube = new SimpleGeom(new VertexBuf(vertices, sizeof(vertices), 7 * sizeof(GLfloat)),
-                           new IndexBuf(indices, sizeof(indices)));
-    _cube->vbuf->SetColorsOffset(3 * sizeof(GLfloat));
-
-
-    */
-/*glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid *) 0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat),
-                          (GLvoid *) (3 * sizeof(GLfloat)));*//*
-
-
-    ratio = (GLfloat) width / height;
-
-    */
-/* glm::vec4 vec = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-     glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
-     vec = trans * vec;
-     glm::mat4 viewMat = glm::lookAt(glm::vec3(0,0,10), glm::vec3(0,0,9), glm::vec3(-sin(0.1f), 0, cos(-0.f)));*//*
-
-
-    */
-/*glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glFrustumf(-ratio, ratio, -1, 1, 1, 10);*//*
-
-
-    return true;
-}
-
-void Renderer::destroy() {
-    LOG_INFO("Destroying context");
-
-    eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglDestroyContext(_display, _context);
-    eglDestroySurface(_display, _surface);
-    eglTerminate(_display);
-
-    _display = EGL_NO_DISPLAY;
-    _surface = EGL_NO_SURFACE;
-    _context = EGL_NO_CONTEXT;
-}
-
-void Renderer::drawFrame() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // FIXME: need to reimplement rendering with modern OpenGL
-    _shader.BindShader();
-    _shader.BeginRender(_cube->vbuf);
-    glm::mat4 id = glm::mat4(1.0f);
-    glm::mat4 res = glm::translate(id, glm::vec3(0, 0, -10));
-    _shader.Render(_cube->ibuf, &res);
-
-
-    */
-/*glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glTranslatef(0, 0, -3.0f);
-    glRotatef(_angle, 0, 1, 0);
-    glRotatef(_angle * 0.25f, 1, 0, 0);
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-
-    glFrontFace(GL_CW);
-    glVertexPointer(3, GL_FIXED, 0, vertices);
-    glColorPointer(4, GL_FIXED, 0, colors);
-
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, indices);
-    *//*
-
-
-    _shader.EndRender();
-    _angle += 1.2f;
-}
-
-void *Renderer::threadStartCallback(void *myself) {
-    auto *renderer = (Renderer *) myself;
-    LOG_INFO("Callback function");
-
-    renderer->renderLoop();
-    pthread_exit(nullptr);
-}
-
-*/
+}*/

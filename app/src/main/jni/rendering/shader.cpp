@@ -24,7 +24,9 @@
 
 Shader::Shader() {
     mVertShaderH = mFragShaderH = mProgramH = 0;
-    mMVPMatrixLoc = -1;
+    mModelMatrixLoc = -1;
+    mViewMatrixLoc = -1;
+    mProjectionMatrixLoc = -1;
     mPositionLoc = -1;
     mPreparedVertexBuf = NULL;
 }
@@ -35,7 +37,9 @@ Shader::Shader(const char *vertexSource, const char *fragSource) {
     mVertSource = vertexSource;
     mFragSource = fragSource;
     mProgramH = 0;
-    mMVPMatrixLoc = -1;
+    mModelMatrixLoc = -1;
+    mViewMatrixLoc = -1;
+    mProjectionMatrixLoc = -1;
     mPositionLoc = -1;
     mColorLoc = -1;
     mScaleRot = -1;
@@ -131,11 +135,24 @@ void Shader::Compile() {
     LOGD("Program linking succeeded.");
 
     glUseProgram(mProgramH);
-    mMVPMatrixLoc = glGetUniformLocation(mProgramH, "u_MVP");
-    if (mMVPMatrixLoc < 0) {
-        LOGE("*** Couldn't get shader's u_MVP matrix location from shader.");
+    mModelMatrixLoc = glGetUniformLocation(mProgramH, "u_Model");
+    if (mModelMatrixLoc < 0) {
+        LOGE("*** Couldn't get shader's u_Model matrix location from shader.");
         ABORT_GAME;
     }
+
+    mViewMatrixLoc = glGetUniformLocation(mProgramH, "u_View");
+    if (mViewMatrixLoc < 0) {
+        LOGE("*** Couldn't get shader's u_View matrix location from shader.");
+        ABORT_GAME;
+    }
+
+    mProjectionMatrixLoc = glGetUniformLocation(mProgramH, "u_Projection");
+    if (mProjectionMatrixLoc < 0) {
+        LOGE("*** Couldn't get shader's u_Projection matrix location from shader.");
+        ABORT_GAME;
+    }
+
     mPositionLoc = glGetAttribLocation(mProgramH, "a_Position");
     if (mPositionLoc < 0) {
         LOGE("*** Couldn't get shader's a_Position attribute location.");
@@ -183,10 +200,19 @@ void Shader::UnbindShader() {
     glUseProgram(0);
 }
 
-// To be called by child classes only.
-void Shader::PushMVPMatrix(glm::mat4 *mat) {
-    MY_ASSERT(mMVPMatrixLoc >= 0);
-    glUniformMatrix4fv(mMVPMatrixLoc, 1, GL_FALSE, glm::value_ptr(*mat));
+void Shader::PushModelMatrix(glm::mat4 *mat) {
+    MY_ASSERT(mModelMatrixLoc >= 0);
+    glUniformMatrix4fv(mModelMatrixLoc, 1, GL_FALSE, glm::value_ptr(*mat));
+}
+
+void Shader::PushViewMatrix(glm::mat4 *mat) {
+    MY_ASSERT(mViewMatrixLoc >= 0);
+    glUniformMatrix4fv(mViewMatrixLoc, 1, GL_FALSE, glm::value_ptr(*mat));
+}
+
+void Shader::PushProjectionMatrix(glm::mat4 *mat) {
+    MY_ASSERT(mProjectionMatrixLoc >= 0);
+    glUniformMatrix4fv(mProjectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(*mat));
 }
 
 void Shader::PushPositions(int vbo_offset, int stride) {

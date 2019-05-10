@@ -42,6 +42,9 @@ protected:
     GLuint mProgramH;
 
     int mMVPMatrixLoc;
+    int mModelMatrixLoc;
+    int mViewMatrixLoc;
+    int mProjectionMatrixLoc;
     GLint mPositionLoc;
     GLint mColorLoc;
     GLint mTexCoordLoc;
@@ -91,8 +94,10 @@ public:
         EndRender();
     }
 
-    // Push MVP matrix to the shader
-    void PushMVPMatrix(glm::mat4 *mat);
+    // Push Model, View and Projection matrices to the shader
+    void PushModelMatrix(glm::mat4 *mat);
+    void PushViewMatrix(glm::mat4 *mat);
+    void PushProjectionMatrix(glm::mat4 *mat);
 
     // Push the vertex positions to the shader
     void PushPositions(int vbo_offset, int stride);

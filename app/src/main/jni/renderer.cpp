@@ -31,17 +31,17 @@ constexpr GLuint VERTEX_DATA_SIZE = (7 * sizeof(float));
 constexpr int POS_OFFSET = (0 * sizeof(float));
 constexpr int COL_OFFSET = (3 * sizeof(float));
 
-
-//TODO: add uniforms for proper multiplication for projection * view * model * local_coords
 static const char VERTEX_SHADER[] =
         "#version 320 es\n"
         "layout(location = 0) in vec3 a_Position;\n"
         "layout(location = 1) in vec4 a_Color;\n"
-        "layout (location = 2) uniform mat4 u_MVP;\n"
+        "layout (location = 2) uniform mat4 u_Model;\n"
+        "layout (location = 3) uniform mat4 u_View;\n"
+        "layout (location = 4) uniform mat4 u_Projection;\n"
         "out vec4 vColor;\n"
         "void main() {\n"
         "    vec4 hom_Pos = vec4(a_Position, 1.0);\n"
-        "    gl_Position = u_MVP * hom_Pos;\n"
+        "    gl_Position = u_Projection * u_View * u_Model * hom_Pos;\n"
         "    vColor = a_Color;\n"
         "}\n";
 
@@ -54,18 +54,17 @@ static const char FRAG_SHADER[] =
         "    outColor = vColor;\n"
         "}\n";
 
-
 static GLfloat vertices[] = {
         // vertex          colors
         //  x     y     z     R     G     B     A
-       -1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.1F, // 5
-        1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 0.1F, // 6
-        1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.1F, // 7
-       -1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.1F, // 8
-       -1.0F,-1.0F,-1.0F, 0.0F, 0.0F, 0.0F, 0.2F, // 1
-        1.0F,-1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 0.2F, // 2
-        1.0F, 1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 0.2F, // 3
-       -1.0F, 1.0F,-1.0F, 0.0F, 1.0F, 0.0F, 0.2F, // 4
+       -1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.1F, // 1  front
+        1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 0.1F, // 2
+        1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.1F, // 3
+       -1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.1F, // 4
+       -1.0F,-1.0F,-1.0F, 0.0F, 0.0F, 0.0F, 0.2F, // 5  back
+        1.0F,-1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 0.2F, // 6
+        1.0F, 1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 0.2F, // 7
+       -1.0F, 1.0F,-1.0F, 0.0F, 1.0F, 0.0F, 0.2F, // 8
 };
 
 GLuint indices[] = {
@@ -169,7 +168,6 @@ void Renderer::draw() {
     mShader->BindShader();
     glBindVertexArray(VAO);
 
-    //TODO: change model, view and projection matrix to uniforms passed into the shader
     //TODO: add slow rotation with some (time function % 360.0F)
     //TODO: add touch listener to change direction of rotation
     //LearnOpenGL
@@ -193,8 +191,6 @@ void Renderer::draw() {
     //projection = glm::ortho(-5.0, 5.0, -5.0, 5.0, 0.1, 10.0);
     projection = glm::perspective(glm::radians(45.0f), 1.0f * 9/18, 0.1f, 10.0f);
 
-    //FIXME: this should happen in the shader
-    glm::mat4 mvp = projection * view * model;
     // end definitions
 
     //TODO: find out what "lookAt" does
@@ -202,7 +198,10 @@ void Renderer::draw() {
 
     mShader->PushPositions(POS_OFFSET, VERTEX_DATA_SIZE);
     mShader->PushColors(COL_OFFSET, VERTEX_DATA_SIZE);
-    mShader->PushMVPMatrix(&mvp);
+    //mShader->PushMVPMatrix(&mvp);
+    mShader->PushModelMatrix(&model);
+    mShader->PushViewMatrix(&view);
+    mShader->PushProjectionMatrix(&projection);
 
     //TODO: draw edges of cube with a *black* line, only edges
     //TODO: --> declare seperate VBO with black as color, maybe use bufferSubData?

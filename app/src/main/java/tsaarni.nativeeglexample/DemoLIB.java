@@ -1,7 +1,5 @@
 package tsaarni.nativeeglexample;
 
-import android.view.Surface;
-
 public class DemoLIB {
     static {
         System.loadLibrary("nativeegl");

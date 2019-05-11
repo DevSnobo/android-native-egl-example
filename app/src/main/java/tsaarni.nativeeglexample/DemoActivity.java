@@ -20,7 +20,7 @@ public class DemoActivity extends Activity {
             public void onClick(View view) {
                 Toast toast = Toast.makeText(DemoActivity.this,
                         //"This demo combines Java UI and native EGL + OpenGL renderer",
-                        "This demo combines gles3jni sample and Java UI",
+                        "This demo combines OpenGL ES 3.2 rendering and Java UI",
                         Toast.LENGTH_LONG);
                 toast.show();
             }});

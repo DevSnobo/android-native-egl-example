@@ -57,34 +57,17 @@ public:
     void resize(int w, int h);
     void render();
 
-protected:
-    /*// return a pointer to a buffer of MAX_INSTANCES * sizeof(vec2).
-    // the buffer is filled with per-instance offsets, then unmapped.
-    virtual float* mapOffsetBuf();
-    virtual void unmapOffsetBuf();
-    // return a pointer to a buffer of MAX_INSTANCES * sizeof(vec4).
-    // the buffer is filled with per-instance scale and rotation transforms.
-    virtual float* mapTransformBuf();
-
-    virtual void unmapTransformBuf();
-
-    virtual void draw(unsigned int numInstances);*/
 private:
     Shader *mShader;
-    SimpleGeom *mCube;
 
     void draw();
-
-    /*unsigned int mNumInstances;
-    float mScale[2]{};
-    float mAngularVelocity[MAX_INSTANCES]{};
-    uint64_t mLastFrameNs{};
-    float mAngles[MAX_INSTANCES]{};*/
 };
 
 extern bool checkGlError(const char* funcName);
 extern Renderer* createRenderer();
 
+
+//TODO: maybe use when trying to transfer to egl?
 /*class Renderer {
 
 public:

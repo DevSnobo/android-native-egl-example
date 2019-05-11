@@ -41,7 +41,6 @@ protected:
     const char *mFragSource;
     GLuint mProgramH;
 
-    int mMVPMatrixLoc;
     int mModelMatrixLoc;
     int mViewMatrixLoc;
     int mProjectionMatrixLoc;
@@ -72,28 +71,6 @@ public:
 
     void UnbindShader();
 
-    // Prepares to render the given geometry.
-    virtual void BeginRender(VertexBuf *vbuf);
-
-    // Renders one copy of the prepared geometry, given a model-view-projection matrix.
-    void Render(glm::mat4 *mvpMat) {
-        Render(NULL, mvpMat);
-    }
-
-    // Renders a subset (given by the index buffer) of the prepared geometry, using
-    // the given model-view-projection matrix.
-    virtual void Render(IndexBuf *ibuf, glm::mat4 *mvpMat);
-
-    // Finishes rendering (call this after you're done making calls to Render())
-    virtual void EndRender();
-
-    // Convenience method to render a single copy of a geometry.
-    void RenderSimpleGeom(glm::mat4 *mvpMat, SimpleGeom *sg) {
-        BeginRender(sg->vbuf);
-        Render(sg->ibuf, mvpMat);
-        EndRender();
-    }
-
     // Push Model, View and Projection matrices to the shader
     void PushModelMatrix(glm::mat4 *mat);
     void PushViewMatrix(glm::mat4 *mat);
@@ -120,38 +97,6 @@ protected:
     virtual const char *GetFragShaderSource();
 
     // Must return the shader's name (used for debug/logging purposes)
-    virtual const char *GetShaderName();
-};
-
-
-/* A trivial shader that knows how to render geometry and colors, but no lighting
- * or texturing. Compatible with geometry that contains color data. You can also specify
- * a tint color, which will get multiplied by the geometry's built-in color. */
-class TrivialShader : public Shader {
-protected:
-    int mColorLoc;
-    int mTintLoc;
-    float mTint[3];
-public:
-    TrivialShader();
-
-    ~TrivialShader();
-
-    int GetColorLoc();
-
-    void SetTintColor(float r, float g, float b);
-
-    void ResetTintColor();
-
-    virtual void Compile();
-
-    virtual void BeginRender(VertexBuf *geom);
-
-protected:
-    virtual const char *GetVertShaderSource();
-
-    virtual const char *GetFragShaderSource();
-
     virtual const char *GetShaderName();
 };
 

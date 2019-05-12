@@ -28,10 +28,6 @@
 #include "logger.h"
 #include "renderer.h"
 
-constexpr GLuint VERTEX_DATA_SIZE = (7 * sizeof(float));
-constexpr int POS_OFFSET = (0 * sizeof(float));
-constexpr int COL_OFFSET = (3 * sizeof(float));
-
 static const char VERTEX_SHADER[] =
         "#version 320 es\n"
         "layout(location = 0) in vec3 a_Position;\n"
@@ -55,7 +51,7 @@ static const char FRAG_SHADER[] =
         "    outColor = vColor;\n"
         "}\n";
 
-static GLfloat vertices[] = {
+GLfloat vertices[] = {
         // vertex
         //  x     y     z
         -1.0F, -1.0F,  1.0F,
@@ -68,20 +64,7 @@ static GLfloat vertices[] = {
         -1.0F,  1.0F, -1.0F,
 };
 
-/*static GLfloat vertices[] = {
-        // vertex          colors
-        //  x     y     z     R     G     B     A
-        -1.0F, -1.0F,  1.0F, 0.0F, 0.0F, 1.0F, 0.1F, // 1  front
-         1.0F, -1.0F,  1.0F, 1.0F, 0.0F, 1.0F, 0.1F, // 2
-         1.0F,  1.0F,  1.0F, 1.0F, 1.0F, 1.0F, 0.1F, // 3
-        -1.0F,  1.0F,  1.0F, 0.0F, 1.0F, 1.0F, 0.1F, // 4
-        -1.0F, -1.0F, -1.0F, 0.0F, 0.0F, 0.0F, 0.2F, // 5  back
-         1.0F, -1.0F, -1.0F, 1.0F, 0.0F, 0.0F, 0.2F, // 6
-         1.0F,  1.0F, -1.0F, 1.0F, 1.0F, 0.0F, 0.2F, // 7
-        -1.0F,  1.0F, -1.0F, 0.0F, 1.0F, 0.0F, 0.2F, // 8
-};*/
-
-static GLfloat colors_cube[] = {
+GLfloat colors_cube[] = {
         0.0F, 0.0F, 1.0F, 0.1F,
         1.0F, 0.0F, 1.0F, 0.1F,
         1.0F, 1.0F, 1.0F, 0.1F,
@@ -92,17 +75,18 @@ static GLfloat colors_cube[] = {
         0.0F, 1.0F, 0.0F, 0.2F,
 };
 
-static GLfloat colors_edges[] = {
-        1.0F, 1.0F, 1.0F, 1.0F,
-        1.0F, 1.0F, 1.0F, 1.0F,
-        1.0F, 1.0F, 1.0F, 1.0F,
-        1.0F, 1.0F, 1.0F, 1.0F,
-        1.0F, 1.0F, 1.0F, 1.0F,
-        1.0F, 1.0F, 1.0F, 1.0F,
-        1.0F, 1.0F, 1.0F, 1.0F,
+GLfloat colors_edges[] = {
+        0.0F, 0.0F, 0.0F, 0.5F,
+        0.0F, 0.0F, 0.0F, 0.5F,
+        0.0F, 0.0F, 0.0F, 0.5F,
+        0.0F, 0.0F, 0.0F, 0.5F,
+        0.0F, 0.0F, 0.0F, 0.5F,
+        0.0F, 0.0F, 0.0F, 0.5F,
+        0.0F, 0.0F, 0.0F, 0.5F,
+        0.0F, 0.0F, 0.0F, 0.5F,
 };
 
-static GLuint indices[] = {
+GLuint indices_cube[] = {
         // front
         0, 1, 2,
         2, 3, 0,
@@ -123,13 +107,30 @@ static GLuint indices[] = {
         6, 7, 3
 };
 
+GLuint indices_edges[] = {
+        0, 1, // front
+        1, 2,
+        2, 3,
+        3, 0,
+        4, 5, // back
+        5, 6,
+        6, 7,
+        7, 4,
+        0, 4, // sides
+        1, 5,
+        2, 6,
+        3, 7,
+
+};
+
 //TODO: better place?
 std::chrono::system_clock::time_point start;
 GLuint VAO_cube;
 GLuint VAO_edges;
 GLuint VBO_cube;
 GLuint VBO_edges;
-GLuint EBO;
+GLuint EBO_cube;
+GLuint EBO_edges;
 
 bool checkGlError(const char *funcName) {
     GLint err = glGetError();
@@ -159,27 +160,25 @@ bool Renderer::init() {
     mShader->Compile();
     mShader->BindShader();
 
-
     //---------------------
     //bind first VAO for cube
     glGenVertexArrays(1, &VAO_cube);
     glGenBuffers(1, &VBO_cube);
-    glGenBuffers(1, &EBO);
+    glGenBuffers(1, &EBO_cube);
 
     glBindVertexArray(VAO_cube);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    //TODO: separate vertex xyz from colors
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(colors_cube), nullptr, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER,                0, sizeof(vertices)   , vertices);
-    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(colors_cube), colors_cube);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    //fill buffer with separate arrays
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(colors_cube), nullptr, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(colors_cube), &colors_cube);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_cube);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_cube), indices_cube, GL_STATIC_DRAW);
 
     // set attributes
     // position attribute
-    glBindVertexArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
     // color attribute
@@ -187,27 +186,32 @@ bool Renderer::init() {
     glEnableVertexAttribArray(1);
     glBindVertexArray(0);
 
-    /*//---------------------
+    //FIXME: fix blackening of the whole cube
+    //---------------------
     //bind second VAO for edges
     glGenVertexArrays(1, &VAO_edges);
     glGenBuffers(1, &VBO_edges);
+    glGenBuffers(1, &EBO_edges);
 
     glBindVertexArray(VAO_edges);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_edges);
 
+    //fill buffer with separate arrays
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(colors_edges), nullptr, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER,                0, sizeof(vertices)   , &vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(colors_edges), &colors_edges);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_edges);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_edges), indices_edges, GL_STATIC_DRAW);
 
     // set attributes
     // position attribute
-    glBindVertexArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
     // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) sizeof(vertices));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) sizeof(vertices));
     glEnableVertexAttribArray(1);
-    glBindVertexArray(0);*/
+    glBindVertexArray(0);
 
     //---------------------
 
@@ -215,7 +219,6 @@ bool Renderer::init() {
 
     start = std::chrono::system_clock::now();
 
-    ALOGV("Using OpenGL ES 3.0 renderer");
     LOG_INFO("--------- finished init() -----------");
     return true;
 }
@@ -247,7 +250,6 @@ void Renderer::draw() {
     long long int degrees = std::chrono::duration_cast<std::chrono::milliseconds>(
             end - start).count();
 
-    //TODO: add slow rotation with some (time function % 360.0F)
     //TODO: add touch listener to change direction of rotation
     //LearnOpenGL
     // matrix definitions
@@ -274,8 +276,9 @@ void Renderer::draw() {
     //TODO: find out what "lookAt" does
     //glm::mat4 view = glm::lookAt(glm::vec3(4,3,3), glm::vec3(0,0,0), glm::vec3(0,1,0));
 
-    mShader->PushPositions(POS_OFFSET, VERTEX_DATA_SIZE);
-    mShader->PushColors(COL_OFFSET, VERTEX_DATA_SIZE);
+    mShader->PushPositions(0, (3 * sizeof(float)));
+    mShader->PushColors(sizeof(vertices), 4 * sizeof(float));
+
     mShader->PushModelMatrix(&model);
     mShader->PushViewMatrix(&view);
     mShader->PushProjectionMatrix(&projection);
@@ -283,10 +286,12 @@ void Renderer::draw() {
     //TODO: draw edges of cube with a *black* line, only edges
     //TODO: --> declare seperate VBO_cube with black as color, maybe use bufferSubData?
     //TODO: replace magic numbers, sizeof() somehow invalidates the draw call
+
+    //FIXME: fix blackening of the whole cube when both VAOs are used
+    glBindVertexArray(VAO_edges);
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, (void *) 0);
     glBindVertexArray(VAO_cube);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
-    /*glBindVertexArray(VAO_edges);
-    glDrawElements(GL_LINE_STRIP, 36, GL_UNSIGNED_INT, (void *) 0);*/
 }
 
 //TODO: delete?

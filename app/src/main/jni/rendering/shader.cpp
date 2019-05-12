@@ -42,8 +42,6 @@ Shader::Shader(const char *vertexSource, const char *fragSource) {
     mProjectionMatrixLoc = -1;
     mPositionLoc = -1;
     mColorLoc = -1;
-    mScaleRot = -1;
-    mOffset = -1;
     mPreparedVertexBuf = NULL;
 }
 

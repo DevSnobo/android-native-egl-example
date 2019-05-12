@@ -18,7 +18,7 @@
 
 #include "common.hpp"
 
-/* Represents a vertex buffer (VBO). */
+/* Represents a vertex buffer (VBO_cube). */
 class VertexBuf {
     private:
         GLuint mVbo;

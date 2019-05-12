@@ -55,7 +55,7 @@ static const char FRAG_SHADER[] =
         "    outColor = vColor;\n"
         "}\n";
 
-/*static GLfloat vertices[] = {
+static GLfloat vertices[] = {
         // vertex
         //  x     y     z
         -1.0F, -1.0F,  1.0F,
@@ -66,9 +66,9 @@ static const char FRAG_SHADER[] =
          1.0F, -1.0F, -1.0F,
          1.0F,  1.0F, -1.0F,
         -1.0F,  1.0F, -1.0F,
-};*/
+};
 
-static GLfloat vertices[] = {
+/*static GLfloat vertices[] = {
         // vertex          colors
         //  x     y     z     R     G     B     A
         -1.0F, -1.0F,  1.0F, 0.0F, 0.0F, 1.0F, 0.1F, // 1  front
@@ -79,9 +79,9 @@ static GLfloat vertices[] = {
          1.0F, -1.0F, -1.0F, 1.0F, 0.0F, 0.0F, 0.2F, // 6
          1.0F,  1.0F, -1.0F, 1.0F, 1.0F, 0.0F, 0.2F, // 7
         -1.0F,  1.0F, -1.0F, 0.0F, 1.0F, 0.0F, 0.2F, // 8
-};
+};*/
 
-/*static GLfloat colors_cube[] = {
+static GLfloat colors_cube[] = {
         0.0F, 0.0F, 1.0F, 0.1F,
         1.0F, 0.0F, 1.0F, 0.1F,
         1.0F, 1.0F, 1.0F, 0.1F,
@@ -100,7 +100,7 @@ static GLfloat colors_edges[] = {
         1.0F, 1.0F, 1.0F, 1.0F,
         1.0F, 1.0F, 1.0F, 1.0F,
         1.0F, 1.0F, 1.0F, 1.0F,
-};*/
+};
 
 static GLuint indices[] = {
         // front
@@ -127,7 +127,8 @@ static GLuint indices[] = {
 std::chrono::system_clock::time_point start;
 GLuint VAO_cube;
 GLuint VAO_edges;
-GLuint VBO;
+GLuint VBO_cube;
+GLuint VBO_edges;
 GLuint EBO;
 
 bool checkGlError(const char *funcName) {
@@ -158,34 +159,57 @@ bool Renderer::init() {
     mShader->Compile();
     mShader->BindShader();
 
-    // fill buffers
+
+    //---------------------
+    //bind first VAO for cube
     glGenVertexArrays(1, &VAO_cube);
-    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &VBO_cube);
     glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO_cube);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     //TODO: separate vertex xyz from colors
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(colors_cube), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(colors_cube), nullptr, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER,                0, sizeof(vertices)   , vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(colors_cube), colors_cube);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // set attributes
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_DATA_SIZE, (void *) POS_OFFSET);
+    glBindVertexArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
     // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERTEX_DATA_SIZE, (void *) COL_OFFSET);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) sizeof(vertices));
     glEnableVertexAttribArray(1);
-
     glBindVertexArray(0);
 
-
+    /*//---------------------
+    //bind second VAO for edges
     glGenVertexArrays(1, &VAO_edges);
-    glBindVertexArray(VAO_edges);
+    glGenBuffers(1, &VBO_edges);
 
+    glBindVertexArray(VAO_edges);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_edges);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(colors_edges), nullptr, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER,                0, sizeof(vertices)   , &vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(colors_edges), &colors_edges);
+
+    // set attributes
+    // position attribute
+    glBindVertexArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
+    glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) sizeof(vertices));
+    glEnableVertexAttribArray(1);
+    glBindVertexArray(0);*/
+
+    //---------------------
 
     mShader->UnbindShader();
 
@@ -257,11 +281,12 @@ void Renderer::draw() {
     mShader->PushProjectionMatrix(&projection);
 
     //TODO: draw edges of cube with a *black* line, only edges
-    //TODO: --> declare seperate VBO with black as color, maybe use bufferSubData?
+    //TODO: --> declare seperate VBO_cube with black as color, maybe use bufferSubData?
     //TODO: replace magic numbers, sizeof() somehow invalidates the draw call
     glBindVertexArray(VAO_cube);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
-    glDrawElements(GL_LINE_STRIP, 36, GL_UNSIGNED_INT, (void *) 0);
+    /*glBindVertexArray(VAO_edges);
+    glDrawElements(GL_LINE_STRIP, 36, GL_UNSIGNED_INT, (void *) 0);*/
 }
 
 //TODO: delete?

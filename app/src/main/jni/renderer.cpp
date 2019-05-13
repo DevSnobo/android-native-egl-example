@@ -160,12 +160,26 @@ bool Renderer::init() {
     mShader->Compile();
     mShader->BindShader();
 
+    GLuint VAOs[2];
+    GLuint VBOs[2];
+    GLuint EBOs[2];
+
+    //---------------------
+    // generate objects
+    glGenVertexArrays(2, VAOs);
+    VAO_cube = VAOs[0];
+    VAO_edges = VAOs[1];
+
+    glGenBuffers(2, VBOs);
+    VBO_cube = VBOs[0];
+    VBO_edges = VBOs[1];
+
+    glGenBuffers(2, EBOs);
+    EBO_cube = EBOs[0];
+    EBO_edges = EBOs[1];
+
     //---------------------
     //bind first VAO for cube
-    glGenVertexArrays(1, &VAO_cube);
-    glGenBuffers(1, &VBO_cube);
-    glGenBuffers(1, &EBO_cube);
-
     glBindVertexArray(VAO_cube);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
 
@@ -186,13 +200,8 @@ bool Renderer::init() {
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) sizeof(vertices));
     glBindVertexArray(0);
 
-    //FIXME: fix blackening of the whole cube
     //---------------------
     //bind second VAO for edges
-    glGenVertexArrays(1, &VAO_edges);
-    glGenBuffers(1, &VBO_edges);
-    glGenBuffers(1, &EBO_edges);
-
     glBindVertexArray(VAO_edges);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_edges);
 
@@ -244,16 +253,15 @@ void Renderer::render() {
 
 void Renderer::draw() {
     mShader->BindShader();
-    glBindVertexArray(VAO_cube);
 
     std::chrono::time_point<std::chrono::system_clock, std::chrono::microseconds> end = std::chrono::system_clock::now();
     long long int degrees = std::chrono::duration_cast<std::chrono::milliseconds>(
             end - start).count();
 
     //TODO: add touch listener to change direction of rotation
-    //LearnOpenGL
-    // matrix definitions
 
+    // LearnOpenGL
+    // matrix definitions
     glm::vec3 axisX = glm::vec3(1.0, 0.0, 0.0);
     glm::vec3 axisY = glm::vec3(0.0, 1.0, 0.0);
 //    glm::vec3 axisZ = glm::vec3(0.0, 0.0, 1.0);
@@ -268,9 +276,7 @@ void Renderer::draw() {
 
     view = glm::translate(view, glm::vec3(0.0, 0.0, -5.0));
 
-    //projection = glm::ortho(-5.0, 5.0, -5.0, 5.0, 0.1, 10.0);
     projection = glm::perspective(glm::radians(45.0f), 1.0f * 9 / 18, 0.1f, 10.0f);
-
     // end definitions
 
     //TODO: find out what "lookAt" does
@@ -283,16 +289,12 @@ void Renderer::draw() {
     mShader->PushViewMatrix(&view);
     mShader->PushProjectionMatrix(&projection);
 
-    //TODO: draw edges of cube with a *black* line, only edges
-    //TODO: --> declare seperate VBO_cube with black as color, maybe use bufferSubData?
     //TODO: replace magic numbers, sizeof() somehow invalidates the draw call
-
-    //FIXME: fix blackening of the whole cube when both VAOs are used
-    glBindVertexArray(VAO_edges);
-    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, (void *) 0);
-    glBindVertexArray(0);
     glBindVertexArray(VAO_cube);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
+    glBindVertexArray(0);
+    glBindVertexArray(VAO_edges);
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, (void *) 0);
     glBindVertexArray(0);
 }
 
@@ -428,7 +430,6 @@ bool Renderer::initialize() {
     _surface = surface;
     _context = context;
 
-    // FIXME: need to reimplement rendering with modern OpenGL
     glDisable(GL_DITHER);
     //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glClearColor(0, 0, 0, 0);

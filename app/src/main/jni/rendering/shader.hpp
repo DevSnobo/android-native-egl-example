@@ -58,9 +58,7 @@ protected:
     VertexBuf *mPreparedVertexBuf;
 public:
     Shader();
-
     Shader(const char *vertexSource, const char *fragSource);
-
     virtual ~Shader();
 
     // compile shader
@@ -68,9 +66,9 @@ public:
 
     // rendering:
     void BindShader();
-
     void UnbindShader();
 
+    // Push methods for uniforms and attributes
     // Push Model, View and Projection matrices to the shader
     void PushModelMatrix(glm::mat4 *mat);
     void PushViewMatrix(glm::mat4 *mat);

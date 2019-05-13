@@ -123,7 +123,6 @@ GLuint indices_edges[] = {
 
 };
 
-//TODO: better place?
 std::chrono::system_clock::time_point start;
 GLuint VAO_cube;
 GLuint VAO_edges;
@@ -279,9 +278,6 @@ void Renderer::draw() {
     projection = glm::perspective(glm::radians(45.0f), 1.0f * 9 / 18, 0.1f, 10.0f);
     // end definitions
 
-    //TODO: find out what "lookAt" does
-    //glm::mat4 view = glm::lookAt(glm::vec3(4,3,3), glm::vec3(0,0,0), glm::vec3(0,1,0));
-
     mShader->PushPositions(0, (3 * sizeof(float)));
     mShader->PushColors(sizeof(vertices), 4 * sizeof(float));
 
@@ -289,7 +285,6 @@ void Renderer::draw() {
     mShader->PushViewMatrix(&view);
     mShader->PushProjectionMatrix(&projection);
 
-    //TODO: replace magic numbers, sizeof() somehow invalidates the draw call
     glBindVertexArray(VAO_cube);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
     glBindVertexArray(0);

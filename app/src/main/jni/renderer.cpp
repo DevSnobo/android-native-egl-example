@@ -179,11 +179,11 @@ bool Renderer::init() {
 
     // set attributes
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     // color attribute
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) sizeof(vertices));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) sizeof(vertices));
     glBindVertexArray(0);
 
     //FIXME: fix blackening of the whole cube
@@ -206,11 +206,11 @@ bool Renderer::init() {
 
     // set attributes
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     // color attribute
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) sizeof(vertices));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) sizeof(vertices));
     glBindVertexArray(0);
 
     //---------------------
@@ -290,8 +290,10 @@ void Renderer::draw() {
     //FIXME: fix blackening of the whole cube when both VAOs are used
     glBindVertexArray(VAO_edges);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, (void *) 0);
+    glBindVertexArray(0);
     glBindVertexArray(VAO_cube);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
+    glBindVertexArray(0);
 }
 
 //TODO: delete?

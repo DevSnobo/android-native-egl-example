@@ -18,6 +18,7 @@
 #include <jni.h>
 #include <android/native_window.h> // requires ndk r5 or newer
 #include <android/native_window_jni.h> // requires ndk r5 or newer
+#include <cstring>
 
 #include "jniapi.h"
 #include "logger.h"
@@ -26,12 +27,12 @@
 //static ANativeWindow *window = nullptr;
 static Renderer *g_renderer = nullptr;
 
-static void printGlString(const char* name, GLenum s) {
-    const char* v = (const char*)glGetString(s);
+static void printGlString(const char *name, GLenum s) {
+    const char *v = (const char *) glGetString(s);
     LOG_INFO("GL %s: %s\n", name, v);
 }
 
-extern "C"
+extern "C" {
 JNIEXPORT void JNICALL
 Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type) {
     if (g_renderer) {
@@ -48,7 +49,7 @@ Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type) {
     printGlString("Extensions", GL_EXTENSIONS);
     LOG_INFO("%s", "------------\n");
 
-    const char* versionStr = (const char*)glGetString(GL_VERSION);
+    const char *versionStr = (const char *) glGetString(GL_VERSION);
     if (strstr(versionStr, "OpenGL ES 3.")) {
         g_renderer = createRenderer();
     } else {
@@ -57,7 +58,6 @@ Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type) {
 
 }
 
-extern "C"
 JNIEXPORT void JNICALL
 Java_tsaarni_nativeeglexample_DemoLIB_resize(JNIEnv *env, jclass type, jint width, jint height) {
     if (g_renderer) {
@@ -65,11 +65,17 @@ Java_tsaarni_nativeeglexample_DemoLIB_resize(JNIEnv *env, jclass type, jint widt
     }
 }
 
-extern "C"
 JNIEXPORT void JNICALL
-Java_tsaarni_nativeeglexample_DemoLIB_step(JNIEnv *env, jclass type) {
+Java_tsaarni_nativeeglexample_DemoLIB_render(JNIEnv *env, jclass type) {
     if (g_renderer) {
         g_renderer->render();
     }
+}
+
+JNIEXPORT void JNICALL
+Java_tsaarni_nativeeglexample_DemoLIB_pushAngle(JNIEnv *env, jclass clazz, jfloat angle) {
+    g_renderer->setAngle(angle);
+}
+
 }
 

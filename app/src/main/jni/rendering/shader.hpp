@@ -16,11 +16,9 @@
 #ifndef demo_shader_hpp
 #define demo_shader_hpp
 
-#include <EGL/egl.h>
 #include <GLES3/gl3.h>
 
 #include "../glm/glm.hpp"
-#include "simplegeom.hpp"
 
 class VertexBuf;
 

@@ -17,7 +17,6 @@
 #define endlesstunnel_common_hpp
 
 extern "C" {
-   #include <EGL/egl.h>
    #include <GLES3/gl3.h>
    #include <jni.h>
    #include <errno.h>
@@ -44,8 +43,6 @@ extern "C" {
    ABORT_GAME; } }
 
 #define BUFFER_OFFSET(i) ((char*)NULL + (i))
-
-#include "our_key_codes.hpp"
 
 #endif
 

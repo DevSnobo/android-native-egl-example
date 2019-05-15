@@ -17,11 +17,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <pthread.h>
-#include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include "rendering/shader.hpp"
-#include "rendering/simplegeom.hpp"
 
 // Include the latest possible header file( GL version header )
 #if __ANDROID_API__ >= 24
@@ -47,11 +44,14 @@ public:
     Renderer();
     virtual ~Renderer();
     bool init();
-    void resize(int w, int h);
+    void resize(int width, int height);
     void render();
+
+    void setAngle(float angle);
 
 private:
     Shader *mShader;
+    float mAngle;
 
     void draw();
 };

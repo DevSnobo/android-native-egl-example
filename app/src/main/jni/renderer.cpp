@@ -16,11 +16,10 @@
 
 #include <cstdint>
 #include <unistd.h>
-#include <pthread.h>
 #include <android/native_window.h>
-#include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include <chrono>
+#include <math.h>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -247,7 +246,12 @@ void Renderer::render() {
     draw();
 
     checkGlError("Renderer::render");
-    LOG_INFO("--------- render() -----------");
+    //LOG_INFO("--------- render() -----------");
+}
+
+void Renderer::setAngle(float angle) {
+    mAngle = angle;
+    LOG_INFO("angle: %f", mAngle);
 }
 
 void Renderer::draw() {
@@ -260,6 +264,16 @@ void Renderer::draw() {
     //TODO: add touch listener to change direction of rotation
 
     // LearnOpenGL
+    //FIXME: factor becomes too small in positive direction, resulting in no rotation
+    float factor;
+    if (mAngle < 0) {
+        factor = mAngle / 40;
+    } else if (mAngle > 0) {
+        factor = 10 / mAngle;
+    } else {
+        factor = 1.0F;
+    }
+
     // matrix definitions
     glm::vec3 axisX = glm::vec3(1.0, 0.0, 0.0);
     glm::vec3 axisY = glm::vec3(0.0, 1.0, 0.0);
@@ -269,8 +283,10 @@ void Renderer::draw() {
     glm::mat4 view = glm::mat4(1.0F);
     glm::mat4 projection = glm::mat4(1.0F);
 
+    //TODO: calculate rotation axis from angle on screen.
+    //FIXME: does not quite work like intended, can't decrease
     model = glm::rotate_slow(model, glm::radians(15.0F), axisX);
-    model = glm::rotate_slow(model, glm::radians(-(degrees * 1.0f) / 40), axisY);
+    model = glm::rotate_slow(model, fmod(glm::radians(-(degrees * 1.0F) / 40), 360.0F), axisY);
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
     view = glm::translate(view, glm::vec3(0.0, 0.0, -5.0));

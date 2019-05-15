@@ -18,9 +18,7 @@
 #include <sstream>
 #include <iostream>
 #include "common.hpp"
-#include "indexbuf.hpp"
 #include "shader.hpp"
-#include "vertexbuf.hpp"
 
 Shader::Shader() {
     mVertShaderH = mFragShaderH = mProgramH = 0;

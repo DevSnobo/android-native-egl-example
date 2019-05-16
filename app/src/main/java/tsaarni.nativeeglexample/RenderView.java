@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.widget.Toast;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -16,6 +17,11 @@ public class RenderView extends GLSurfaceView implements SurfaceHolder.Callback 
     private final float TOUCH_SCALE_FACTOR = 180.0f / 320;
     private float previousX;
     private float previousY;
+    private float tapX = 0;
+    private float tapY = 0;
+
+
+    private Toast toast;
 
 
 
@@ -28,6 +34,8 @@ public class RenderView extends GLSurfaceView implements SurfaceHolder.Callback 
         setEGLConfigChooser(8, 8, 8, 8, 8, 0);
         setEGLContextClientVersion(3);
         setRenderer(renderer);
+
+
     }
 
 
@@ -48,24 +56,42 @@ public class RenderView extends GLSurfaceView implements SurfaceHolder.Callback 
 
                 // reverse direction of rotation above the mid-line
                 if (y > getHeight() / 2.0) {
-                    dx = dx * -1 ;
+                    dx = dx * -1;
                 }
 
                 // reverse direction of rotation to left of the mid-line
                 if (x < getWidth() / 2.0) {
-                    dy = dy * -1 ;
+                    dy = dy * -1;
                 }
 
                 renderer.setAngle(
                         renderer.getAngle() +
                                 ((dx + dy) * TOUCH_SCALE_FACTOR));
-                System.out.println("---------------------------------");
-                System.out.println(renderer.getAngle());
-                System.out.println("X direction: " + dx);
-                System.out.println("Y direction: " + dy);
-                System.out.println("---------------------------------");
+                System.out.println("\n\n---------------------------------"
+                        + "\n              " + renderer.getAngle()
+                        + "\n              X: " + x
+                        + "\n              Y: " + y
+                        + "\n---------------------------------\n\n");
                 //FIXME: need to figure out proper manipulation of rotation
                 //DemoLIB.pushAngle(renderer.getAngle());
+                break;
+
+            case MotionEvent.ACTION_DOWN:
+                tapX = x;
+                tapY = y;
+                break;
+
+            case MotionEvent.ACTION_UP:
+                if (tapX == x && tapY == y) {
+                    toast = Toast.makeText(super.getContext(),
+                            //"This demo combines Java UI and native EGL + OpenGL renderer",
+                            "This demo combines OpenGL ES 3.2 rendering and Java UI",
+                            Toast.LENGTH_LONG);
+                    toast.show();
+                }
+                break;
+
+            default:
                 break;
         }
 
@@ -84,7 +110,7 @@ public class RenderView extends GLSurfaceView implements SurfaceHolder.Callback 
         }
 
         public void setAngle(float angle) {
-            mAngle = angle;
+            mAngle = angle % 360;
         }
 
 

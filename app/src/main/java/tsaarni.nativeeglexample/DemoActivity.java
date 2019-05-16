@@ -2,8 +2,7 @@ package tsaarni.nativeeglexample;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Toast;
+import android.util.DisplayMetrics;
 
 public class DemoActivity extends Activity {
 
@@ -15,15 +14,17 @@ public class DemoActivity extends Activity {
         mView = new RenderView(getApplication());
         setContentView(mView);
 
-        mView.getHolder().addCallback(mView);
-        mView.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                Toast toast = Toast.makeText(DemoActivity.this,
-                        //"This demo combines Java UI and native EGL + OpenGL renderer",
-                        "This demo combines OpenGL ES 3.2 rendering and Java UI",
-                        Toast.LENGTH_LONG);
-                toast.show();
-            }});
+        DisplayMetrics display = getResources().getDisplayMetrics();
+
+        //TODO: hand screen width, height to renderer
+        int width = display.widthPixels;
+        int height = display.heightPixels;
+
+        System.out.println("\n\n--------------------------"
+                + "\nScreen sizes: "
+                + "\nWidth: " + width
+                + "\nHeight: " + height
+                + "\n--------------------------\n\n");
     }
 
     @Override

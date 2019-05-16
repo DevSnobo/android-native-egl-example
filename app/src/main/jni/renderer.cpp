@@ -264,15 +264,13 @@ void Renderer::draw() {
     //TODO: add touch listener to change direction of rotation
 
     // LearnOpenGL
+    // angle -> rotation axis calculations
     //FIXME: factor becomes too small in positive direction, resulting in no rotation
-    float factor;
-    if (mAngle < 0) {
-        factor = mAngle / 40;
-    } else if (mAngle > 0) {
-        factor = 10 / mAngle;
-    } else {
-        factor = 1.0F;
-    }
+    glm::vec3 rotDirection; //
+    // = glm::vec3()
+
+
+    // calculation end
 
     // matrix definitions
     glm::vec3 axisX = glm::vec3(1.0, 0.0, 0.0);

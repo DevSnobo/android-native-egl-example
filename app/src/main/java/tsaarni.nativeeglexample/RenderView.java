@@ -17,17 +17,16 @@ public class RenderView extends GLSurfaceView implements SurfaceHolder.Callback 
     private final float TOUCH_SCALE_FACTOR = 180.0f / 320;
     private float previousX;
     private float previousY;
-    private float tapX = 0;
-    private float tapY = 0;
-
+    private float startX = 0;
+    private float startY = 0;
 
     private Toast toast;
-
-
 
     public RenderView(Context context) {
         super(context);
         this.renderer = new Renderer();
+        renderer.setScreenSizes(getWidth(), getHeight());
+
         previousX = 0;
         previousY = 0;
 
@@ -50,8 +49,14 @@ public class RenderView extends GLSurfaceView implements SurfaceHolder.Callback 
 
         switch (e.getAction()) {
             case MotionEvent.ACTION_MOVE:
+                //FIXME: redo this section and do it correctly
 
-                float dx = x - previousX;
+
+
+
+                //------------------------------------------------------------------
+                //TODO: modulo screen width/height or whatever
+                /*float dx = x - previousX;
                 float dy = y - previousY;
 
                 // reverse direction of rotation above the mid-line
@@ -65,29 +70,44 @@ public class RenderView extends GLSurfaceView implements SurfaceHolder.Callback 
                 }
 
                 renderer.setAngle(
-                        renderer.getAngle() +
-                                ((dx + dy) * TOUCH_SCALE_FACTOR));
-                System.out.println("\n\n---------------------------------"
+                        //renderer.getAngle() +
+                        ((dx + dy) * TOUCH_SCALE_FACTOR));*/
+                /*System.out.println("\n\n---------------------------------"
                         + "\n              " + renderer.getAngle()
                         + "\n              X: " + x
                         + "\n              Y: " + y
-                        + "\n---------------------------------\n\n");
+                        + "\n---------------------------------\n\n");*/
                 //FIXME: need to figure out proper manipulation of rotation
                 //DemoLIB.pushAngle(renderer.getAngle());
                 break;
+            //------------------------------------------------------------------
 
             case MotionEvent.ACTION_DOWN:
-                tapX = x;
-                tapY = y;
+                startX = x;
+                startY = y;
                 break;
 
             case MotionEvent.ACTION_UP:
-                if (tapX == x && tapY == y) {
+                if (startX == x && startY == y) {
                     toast = Toast.makeText(super.getContext(),
                             //"This demo combines Java UI and native EGL + OpenGL renderer",
                             "This demo combines OpenGL ES 3.2 rendering and Java UI",
                             Toast.LENGTH_LONG);
                     toast.show();
+                } else {
+                    //from middle
+                    float midStartX = startX - getWidth() / 2.0f;
+                    float midStartY = startY - getHeight() / 2.0f;
+                    float midEndX = x - getWidth() / 2.0f;
+                    float midEndY = y - getHeight() / 2.0f;
+
+                    renderer.setAngle((float) Math.toDegrees(Math.atan2((midEndY - midStartY), (midEndX - midStartX))));
+
+                    System.out.println("\n\n---------------------------------"
+                            + "\n              " + renderer.getAngle()
+                            + "\n              X: " + x
+                            + "\n              Y: " + y
+                            + "\n---------------------------------\n\n");
                 }
                 break;
 
@@ -102,21 +122,29 @@ public class RenderView extends GLSurfaceView implements SurfaceHolder.Callback 
 
 
     private static class Renderer implements GLSurfaceView.Renderer {
-
-        public volatile float mAngle;
+        public volatile float angle;
+        private int width;
+        private int height;
 
         public float getAngle() {
-            return mAngle;
+            return angle;
         }
 
         public void setAngle(float angle) {
-            mAngle = angle % 360;
+            this.angle = angle % 360;
+            //FIXME:
+            DemoLIB.pushAngle(getAngle());
+        }
+
+        public void setScreenSizes(int width, int height) {
+            this.width = width;
+            this.height = height;
         }
 
 
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-            DemoLIB.init();
+            DemoLIB.init(width, height);
             DemoLIB.pushAngle(getAngle());
         }
 

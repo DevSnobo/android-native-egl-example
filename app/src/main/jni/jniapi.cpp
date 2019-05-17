@@ -34,7 +34,7 @@ static void printGlString(const char *name, GLenum s) {
 
 extern "C" {
 JNIEXPORT void JNICALL
-Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type) {
+Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type, jint width, jint height) {
     if (g_renderer) {
         delete g_renderer;
         g_renderer = NULL;
@@ -56,6 +56,8 @@ Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type) {
         LOG_ERROR("Unsupported OpenGL ES version");
     }
 
+    g_renderer->setScreenBounds(width, height);
+    g_renderer->setAngle(-180.0F);
 }
 
 JNIEXPORT void JNICALL

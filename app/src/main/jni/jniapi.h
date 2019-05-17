@@ -18,24 +18,15 @@
 
 extern "C" {
 JNIEXPORT void JNICALL
-Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStart(JNIEnv *jenv,
-                                                             jclass type);
+Java_tsaarni_nativeeglexample_DemoLIB_init(JNIEnv *env, jclass type, jint width, jint height);
+
 JNIEXPORT void JNICALL
-Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnResume(JNIEnv *jenv,
-                                                              jclass type);
+Java_tsaarni_nativeeglexample_DemoLIB_resize(JNIEnv *env, jclass type, jint width, jint height);
+
 JNIEXPORT void JNICALL
-Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnPause(JNIEnv *jenv,
-                                                             jclass type);
+Java_tsaarni_nativeeglexample_DemoLIB_render(JNIEnv *env, jclass type);
+
 JNIEXPORT void JNICALL
-Java_tsaarni_nativeeglexample_NativeEglExample_nativeOnStop(JNIEnv *jenv,
-                                                            jclass type);
-JNIEXPORT void JNICALL
-Java_tsaarni_nativeeglexample_NativeEglExample_nativeSetSurface(JNIEnv *jenv,
-                                                                jclass type,
-                                                                jobject surface);
-JNIEXPORT void JNICALL
-Java_tsaarni_nativeeglexample_DemoLIB_pushAngle(JNIEnv *env,
-                                                jclass clazz,
-                                                jfloat angle);
+Java_tsaarni_nativeeglexample_DemoLIB_pushAngle(JNIEnv *env, jclass clazz, jfloat angle);
 };
 #endif // JNIAPI_H

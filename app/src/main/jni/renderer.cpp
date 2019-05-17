@@ -231,7 +231,9 @@ bool Renderer::init() {
 }
 
 void Renderer::resize(int w, int h) {
-    glViewport(0, 0, w, h);
+    mWidth = w;
+    mHeight = h;
+    glViewport(0, 0, mWidth, mHeight);
     LOG_INFO("--------- finished resize() -----------");
 }
 
@@ -254,6 +256,11 @@ void Renderer::setAngle(float angle) {
     LOG_INFO("angle: %f", mAngle);
 }
 
+void Renderer::setScreenBounds(int width, int height) {
+    mWidth = width;
+    mHeight = height;
+}
+
 void Renderer::draw() {
     mShader->BindShader();
 
@@ -266,8 +273,13 @@ void Renderer::draw() {
     // LearnOpenGL
     // angle -> rotation axis calculations
     //FIXME: factor becomes too small in positive direction, resulting in no rotation
-    glm::vec3 rotDirection; //
-    // = glm::vec3()
+
+    //default direction: right (positive x)
+    // -> cross product == Y axis
+    glm::vec3 direction = glm::vec3(cos(mAngle), sin(mAngle), 0);
+
+    //TODO: extract to attribute, set default value to y axis
+    glm::vec3 rotAxis = glm::cross(direction, glm::vec3(0.0, 0.0, 1.0));
 
 
     // calculation end
@@ -275,7 +287,7 @@ void Renderer::draw() {
     // matrix definitions
     glm::vec3 axisX = glm::vec3(1.0, 0.0, 0.0);
     glm::vec3 axisY = glm::vec3(0.0, 1.0, 0.0);
-//    glm::vec3 axisZ = glm::vec3(0.0, 0.0, 1.0);
+    //glm::vec3 axisZ = glm::vec3(0.0, 0.0, 1.0);
 
     glm::mat4 model = glm::mat4(1.0F);
     glm::mat4 view = glm::mat4(1.0F);
@@ -284,7 +296,8 @@ void Renderer::draw() {
     //TODO: calculate rotation axis from angle on screen.
     //FIXME: does not quite work like intended, can't decrease
     model = glm::rotate_slow(model, glm::radians(15.0F), axisX);
-    model = glm::rotate_slow(model, fmod(glm::radians(-(degrees * 1.0F) / 40), 360.0F), axisY);
+    //model = glm::rotate_slow(model, fmod(glm::radians(-(degrees * 1.0F) / 40), 360.0F), axisY);
+    model = glm::rotate_slow(model, fmod(glm::radians((degrees * 1.0F) / 40), 360.0F), rotAxis);
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
     view = glm::translate(view, glm::vec3(0.0, 0.0, -5.0));

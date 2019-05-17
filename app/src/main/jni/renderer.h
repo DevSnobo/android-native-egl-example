@@ -46,12 +46,15 @@ public:
     bool init();
     void resize(int width, int height);
     void render();
-
     void setAngle(float angle);
+    void setScreenBounds(int width, int height);
+
+    int mWidth;
+    int mHeight;
+    float mAngle;
 
 private:
     Shader *mShader;
-    float mAngle;
 
     void draw();
 };

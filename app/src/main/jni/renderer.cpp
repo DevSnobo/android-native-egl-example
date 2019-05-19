@@ -19,7 +19,7 @@
 #include <android/native_window.h>
 #include <GLES3/gl3.h>
 #include <chrono>
-#include <math.h>
+#include <cmath>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -53,14 +53,14 @@ static const char FRAG_SHADER[] =
 GLfloat vertices[] = {
         // vertex
         //  x     y     z
-        -1.0F, -1.0F,  1.0F,
-         1.0F, -1.0F,  1.0F,
-         1.0F,  1.0F,  1.0F,
-        -1.0F,  1.0F,  1.0F,
+        -1.0F, -1.0F, 1.0F,
+        1.0F, -1.0F, 1.0F,
+        1.0F, 1.0F, 1.0F,
+        -1.0F, 1.0F, 1.0F,
         -1.0F, -1.0F, -1.0F,
-         1.0F, -1.0F, -1.0F,
-         1.0F,  1.0F, -1.0F,
-        -1.0F,  1.0F, -1.0F,
+        1.0F, -1.0F, -1.0F,
+        1.0F, 1.0F, -1.0F,
+        -1.0F, 1.0F, -1.0F,
 };
 
 GLfloat colors_cube[] = {
@@ -122,13 +122,17 @@ GLuint indices_edges[] = {
 
 };
 
-std::chrono::system_clock::time_point start;
 GLuint VAO_cube;
 GLuint VAO_edges;
 GLuint VBO_cube;
 GLuint VBO_edges;
 GLuint EBO_cube;
 GLuint EBO_edges;
+
+
+std::chrono::system_clock::time_point start;
+glm::vec3 direction;
+glm::vec3 rotAxis;
 
 bool checkGlError(const char *funcName) {
     GLint err = glGetError();
@@ -268,20 +272,12 @@ void Renderer::draw() {
     long long int degrees = std::chrono::duration_cast<std::chrono::milliseconds>(
             end - start).count();
 
-    //TODO: add touch listener to change direction of rotation
-
     // LearnOpenGL
     // angle -> rotation axis calculations
-    //FIXME: factor becomes too small in positive direction, resulting in no rotation
-
     //default direction: right (positive x)
     // -> cross product == Y axis
-    glm::vec3 direction = glm::vec3(cos(mAngle), sin(mAngle), 0);
-
-    //TODO: extract to attribute, set default value to y axis
-    glm::vec3 rotAxis = glm::cross(direction, glm::vec3(0.0, 0.0, 1.0));
-
-
+    direction = glm::vec3(cosf(glm::radians(mAngle)), sinf(-glm::radians(mAngle)), 0);
+    rotAxis = glm::cross(direction, glm::vec3(0.0, 0.0, -1.0));
     // calculation end
 
     // matrix definitions
@@ -293,10 +289,8 @@ void Renderer::draw() {
     glm::mat4 view = glm::mat4(1.0F);
     glm::mat4 projection = glm::mat4(1.0F);
 
-    //TODO: calculate rotation axis from angle on screen.
-    //FIXME: does not quite work like intended, can't decrease
-    model = glm::rotate_slow(model, glm::radians(15.0F), axisX);
-    //model = glm::rotate_slow(model, fmod(glm::radians(-(degrees * 1.0F) / 40), 360.0F), axisY);
+    //TODO: smoothen transition between rotation directions
+    //model = glm::rotate_slow(model, glm::radians(15.0F), axisX);
     model = glm::rotate_slow(model, fmod(glm::radians((degrees * 1.0F) / 40), 360.0F), rotAxis);
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 

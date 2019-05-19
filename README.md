@@ -1,10 +1,35 @@
 
-Android Native EGL example
+Android Native OpenGL example
 ==========================
 
 This project demonstrates how to combine Java application with native
-C/C++ code for OpenGL rendering on Android 2.3 and newer.  It shows
-how to do rendering without GLSurfaceView and GLSurfaceView.Renderer
+C/C++ code for OpenGL rendering on Android 8.0 and newer. It shows how
+to do rendering with GLSurfaceView and GLSurfaceView.Renderer Java classes.
+
+<img src="cube.png" alt="cube" width="300"/>
+
+Requirements
+------------
+
+Android API level 26+ and Android NDK r19c
+
+
+Acknowledgments
+---------------
+
+The renderer code was adapted from Android NDK gles3jni sample.
+OpenGL knowledge acquired at learnopengl.com
+
+
+
+--------------------------------------------------------------------------
+
+Legacy/Old/Original part of the project:
+
+Android Native GL example
+==========================
+
+It shows how to do rendering without GLSurfaceView and GLSurfaceView.Renderer
 Java classes.  The solution gives full control of the rendering for
 the native code while still allowing the convenience of using Java for
 calling Android APIs.
@@ -21,11 +46,6 @@ thread.
 
 ![screenshot](http://i.imgur.com/qTfiE.png)
 
-Requirements
-------------
-
-Android API level 28 and Android NDK r19c
-
 
 Acknowledgments
 ---------------
@@ -33,4 +53,5 @@ Acknowledgments
 The EGL setup code was adapted from Android NDK native-activity sample.
 
 The OpenGL cube was adapted from Android SDK Graphics ApiDemos.
+
 
